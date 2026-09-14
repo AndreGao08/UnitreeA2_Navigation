@@ -1,0 +1,110 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+  - Class: rviz_common/Views
+    Name: Views
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Enabled: true
+      Name: Grid
+      Cell Size: 1
+      Plane: XY
+      Value: true
+    - Class: rviz_default_plugins/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: false
+      Value: true
+    - Class: rviz_default_plugins/RobotModel
+      Enabled: true
+      Description Source: Topic
+      Description Topic:
+        Depth: 1
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot_description
+      Name: Unitree A2
+      Visual Enabled: true
+      Collision Enabled: false
+      Value: true
+    - Class: rviz_default_plugins/PointCloud2
+      Alpha: 0.45
+      Axis: Z
+      Channel Name: intensity
+      Color Transformer: AxisColor
+      Decay Time: 0
+      Enabled: true
+      Name: Saved Map
+      Position Transformer: XYZ
+      Size (Pixels): 2
+      Style: Flat Squares
+      Topic:
+        Depth: 1
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /a2/map
+      Use Fixed Frame: true
+      Value: true
+    - Class: rviz_default_plugins/PointCloud2
+      Alpha: 1
+      Axis: Z
+      Channel Name: intensity
+      Color Transformer: FlatColor
+      Color: 255; 80; 40
+      Decay Time: 2
+      Enabled: true
+      Name: Aligned Scan
+      Position Transformer: XYZ
+      Size (Pixels): 3
+      Style: Flat Squares
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /a2/relocalization/aligned_scan
+      Use Fixed Frame: true
+      Value: true
+    - Class: rviz_default_plugins/Odometry
+      Enabled: true
+      Keep: 200
+      Name: Global base_link Pose
+      Topic:
+        Depth: 20
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /a2/localization
+      Value: true
+  Enabled: true
+  Global Options:
+    Background Color: 30; 30; 30
+    Fixed Frame: map
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz_default_plugins/Interact
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/SetInitialPose
+      Topic: /initialpose
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/FocusCamera
+  Transformation:
+    Current:
+      Class: rviz_default_plugins/TF
+  Value: true
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 12
+      Pitch: 0.55
+      Yaw: 0.8

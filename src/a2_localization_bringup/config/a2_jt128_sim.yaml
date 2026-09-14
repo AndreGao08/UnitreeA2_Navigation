@@ -1,0 +1,59 @@
+/**:
+  ros__parameters:
+    use_sim_time: true
+    feature_extract_enable: false
+    point_filter_num: 6
+    max_iteration: 3
+    filter_size_surf: 0.35
+    filter_size_map: 0.25
+    cube_side_length: 200.0
+    runtime_pos_log_enable: false
+
+    common:
+      lid_topic: /lidar_points
+      imu_topic: /lidar_imu
+      world_frame: odom
+      body_frame: hesai_jt128_imu_link
+      time_sync_en: false
+      time_offset_lidar_to_imu: 0.0
+      imu_gyr_unit: rad
+
+    preprocess:
+      lidar_type: 2
+      scan_line: 128
+      scan_rate: 10
+      timestamp_unit: 0
+      blind: 0.5
+
+    mapping:
+      acc_cov: 0.02
+      gyr_cov: 0.01
+      b_acc_cov: 0.0001
+      b_gyr_cov: 0.0001
+      imu_init_delay: 0.5
+      imu_init_duration: 3.0
+      fov_degree: 360.0
+      det_range: 50.0
+      extrinsic_est_en: false
+      extrinsic_T: [0.0, 0.0, 0.0]
+      extrinsic_R: [1.0, 0.0, 0.0,
+                    0.0, 1.0, 0.0,
+                    0.0, 0.0, 1.0]
+
+    publish:
+      tf_en: false
+      path_en: true
+      effect_map_en: false
+      map_en: true
+      scan_publish_en: true
+      dense_publish_en: true
+      scan_bodyframe_pub_en: true
+
+    map_file_path: /tmp/a2_fastlio_map.pcd
+    pcd_save:
+      pcd_save_en: true
+      interval: -1
+      leaf_size: 0.1
+
+    trajectory_save:
+      tum_en: true

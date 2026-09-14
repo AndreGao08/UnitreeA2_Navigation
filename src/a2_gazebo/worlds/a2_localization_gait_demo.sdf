@@ -1,0 +1,110 @@
+<?xml version="1.0"?>
+<sdf version="1.8">
+  <world name="a2_localization">
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin filename="ignition-gazebo-physics-system"
+            name="ignition::gazebo::systems::Physics"/>
+    <plugin filename="ignition-gazebo-user-commands-system"
+            name="ignition::gazebo::systems::UserCommands"/>
+    <plugin filename="ignition-gazebo-scene-broadcaster-system"
+            name="ignition::gazebo::systems::SceneBroadcaster"/>
+    <plugin filename="ignition-gazebo-sensors-system"
+            name="ignition::gazebo::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="ignition-gazebo-imu-system"
+            name="ignition::gazebo::systems::Imu"/>
+
+    <!-- Gait presentation mode: the base follows the assisted velocity while
+         the joints animate.  The floor remains visible to the GPU lidar, but
+         deliberately has no collision so the URDF's initially straight legs
+         cannot inject a large, fake contact acceleration before they fold. -->
+    <gravity>0 0 0</gravity>
+    <magnetic_field>5.64e-6 22.9e-6 -42.8e-6</magnetic_field>
+    <atmosphere type="adiabatic"/>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.4 0.2 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <visual name="visual">
+          <geometry><box><size>40 40 0.1</size></box></geometry>
+          <material>
+            <ambient>0.35 0.35 0.35 1</ambient>
+            <diffuse>0.55 0.55 0.55 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="north_wall">
+      <static>true</static><pose>0 7 1.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>16 0.2 3</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>16 0.2 3</size></box></geometry>
+          <material><ambient>0.65 0.68 0.72 1</ambient><diffuse>0.65 0.68 0.72 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="east_wall">
+      <static>true</static><pose>8 0 1.25 0 0 0</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>0.2 14 2.5</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>0.2 14 2.5</size></box></geometry>
+          <material><ambient>0.45 0.58 0.70 1</ambient><diffuse>0.45 0.58 0.70 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="short_wall">
+      <static>true</static><pose>-4 -3 0.75 0 0 0.35</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>5 0.25 1.5</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>5 0.25 1.5</size></box></geometry>
+          <material><ambient>0.7 0.5 0.3 1</ambient><diffuse>0.7 0.5 0.3 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="box_cluster">
+      <static>true</static><pose>3 3 0 0 0 0</pose>
+      <link name="link">
+        <collision name="c1"><pose>0 0 0.5 0 0 0</pose><geometry><box><size>1 1 1</size></box></geometry></collision>
+        <visual name="v1"><pose>0 0 0.5 0 0 0</pose><geometry><box><size>1 1 1</size></box></geometry></visual>
+        <collision name="c2"><pose>1.1 0.3 0.9 0 0 0</pose><geometry><box><size>0.8 0.8 1.8</size></box></geometry></collision>
+        <visual name="v2"><pose>1.1 0.3 0.9 0 0 0</pose><geometry><box><size>0.8 0.8 1.8</size></box></geometry></visual>
+      </link>
+    </model>
+
+    <model name="pole_1">
+      <static>true</static><pose>-2 4 1 0 0 0</pose>
+      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.12</radius><length>2</length></cylinder></geometry></collision>
+        <visual name="visual"><geometry><cylinder><radius>0.12</radius><length>2</length></cylinder></geometry></visual></link>
+    </model>
+    <model name="pole_2">
+      <static>true</static><pose>5 -4 1.5 0 0 0</pose>
+      <link name="link"><collision name="collision"><geometry><cylinder><radius>0.18</radius><length>3</length></cylinder></geometry></collision>
+        <visual name="visual"><geometry><cylinder><radius>0.18</radius><length>3</length></cylinder></geometry></visual></link>
+    </model>
+
+    <model name="ramp">
+      <static>true</static><pose>-5 3 0.45 0 0.18 -0.4</pose>
+      <link name="link">
+        <collision name="collision"><geometry><box><size>3 2 0.15</size></box></geometry></collision>
+        <visual name="visual"><geometry><box><size>3 2 0.15</size></box></geometry>
+          <material><ambient>0.4 0.6 0.35 1</ambient><diffuse>0.4 0.6 0.35 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+  </world>
+</sdf>

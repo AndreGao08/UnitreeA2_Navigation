@@ -1,0 +1,1336 @@
+<robot name="a2" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!--
+    The simulated Hesai optical frame is colocated with Unitree's front LiDAR
+    housing and kept configurable for measured hardware calibration.
+    ROS convention: x forward, y left, z up.
+  -->
+  <xacro:arg name="lidar_xyz" default="0.33767 0.0 0.08134"/>
+  <xacro:arg name="lidar_rpy" default="0.0 0.0 0.0"/>
+  <xacro:arg name="lidar_horizontal_samples" default="256"/>
+  <xacro:arg name="lidar_update_rate" default="10"/>
+  <xacro:arg name="lidar_visualize" default="false"/>
+  <xacro:arg name="locomotion_mode" default="kinematic"/>
+  <xacro:property name="dynamic_mode"
+                  value="${'$(arg locomotion_mode)' != 'kinematic'}"/>
+  <xacro:property name="assisted_mode"
+                  value="${'$(arg locomotion_mode)' == 'gait_demo'}"/>
+
+  <xacro:macro name="joint_position_controller"
+               params="joint position p_gain d_gain effort topic:=''">
+    <gazebo>
+      <plugin filename="ignition-gazebo-joint-position-controller-system"
+              name="ignition::gazebo::systems::JointPositionController">
+        <joint_name>${joint}</joint_name>
+        <initial_position>${position}</initial_position>
+        <xacro:if value="${topic != ''}"><topic>${topic}</topic></xacro:if>
+        <p_gain>${p_gain}</p_gain>
+        <i_gain>0.0</i_gain>
+        <d_gain>${d_gain}</d_gain>
+        <cmd_max>${effort}</cmd_max>
+        <cmd_min>${-effort}</cmd_min>
+      </plugin>
+    </gazebo>
+  </xacro:macro>
+
+  <!-- [CAUTION] uncomment when convert to mujoco -->
+  <!-- <mujoco>
+    <compiler meshdir="../meshes" discardvisual="false" />
+  </mujoco>
+  <link name="world"></link>
+  <joint name="floating_base_joint" type="floating">
+    <parent link="world" />
+    <child link="base_link" />
+  </joint> -->
+
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="6.982591E-03 -0.712858E-03 12.889523E-03"
+        rpy="0 0 0" />
+      <mass
+        value="19.651" />
+      <inertia
+        ixx="141775328.248061E-09"
+        ixy="400505.020171E-09"
+        ixz="-6996487.718114E-09"
+        iyy="407724601.564754E-09"
+        iyz="-361858.857563E-09"
+        izz="472247985.516800E-09" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://a2_description/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 0.007" rpy="0 0 0" />
+      <geometry>
+        <box size="0.24 0.28 0.17" />
+      </geometry>
+    </collision>
+
+    <collision>
+      <origin xyz="0.25 0 0.119" rpy="0.0 0 0.0" />
+      <geometry>
+        <box size="0.08 0.05 0.02" />
+      </geometry>
+    </collision>
+
+    <collision>
+      <origin xyz="-0.22 0 0.119" rpy="-0.0 -0.03 0.0" />
+      <geometry>
+        <box size="0.05 0.03 0.016" />
+      </geometry>
+    </collision>
+
+    <collision>
+      <origin xyz="0.365 0 0.1" rpy="0 -0.7 0" />
+      <geometry>
+        <box size="0.06 0.1 0.01" />
+      </geometry>
+    </collision>
+
+    <collision>
+      <origin xyz="-0.31 0 0.112" rpy="0 0.7 0" />
+      <geometry>
+        <box size="0.045 0.1 0.01" />
+      </geometry>
+    </collision>
+
+  </link>
+
+
+  <link
+    name="FL_hip">
+    <inertial>
+      <origin
+        xyz="-2.408E-03 -16.220E-03 0.239E-03"
+        rpy="0 0 0" />
+      <mass
+        value="1.620" />
+      <inertia
+        ixx="1476.261E-06"
+        ixy="53.160E-06"
+        ixz="-7.425E-06"
+        iyy="1633.309E-06"
+        iyz="-21.032E-06"
+        izz="1630.804E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://a2_description/meshes/left_front_Link1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+
+  </link>
+  <joint
+    name="FL_hip_joint"
+    type="revolute">
+    <origin
+      xyz="0.25944 0.075113 0"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="FL_hip" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      lower="-1.01"
+      upper="1.01"
+      effort="120.0"
+      velocity="22.0" />
+  </joint>
+  <link
+    name="FL_thigh">
+    <inertial>
+      <origin
+        xyz="-3.268E-03 -31.110E-03 -53.896E-03"
+        rpy="0 0 0" />
+      <mass
+        value="3.079" />
+      <inertia
+        ixx="29271.794E-06"
+        ixy="337.285E-06"
+        ixz="-1251.409E-06"
+        iyy="26828.777E-06"
+        iyz="5283.783E-06"
+        izz="5121.720E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://a2_description/meshes/left_front_Link2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.04 0" rpy="1.571 0 0" />
+      <geometry>
+        <cylinder radius="0.048" length="0.12" />
+      </geometry>
+    </collision>
+
+    <collision>
+      <origin xyz="-0.025 0.00 -0.09" rpy="0 0.01 0" />
+      <geometry>
+        <box size="0.055 0.036 0.17" />
+      </geometry>
+    </collision>
+
+    <collision>
+      <origin xyz="-0.022 0.00 -0.27" rpy="0 -0.75 0" />
+      <geometry>
+        <box size="0.017 0.05 0.05" />
+      </geometry>
+    </collision>
+
+  </link>
+  <joint
+    name="FL_thigh_joint"
+    type="revolute">
+    <origin
+      xyz="0 0.12779 0"
+      rpy="0 0 0" />
+    <parent
+      link="FL_hip" />
+    <child
+      link="FL_thigh" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-2.34"
+      upper="3.15"
+      effort="120.0"
+      velocity="22.0" />
+  </joint>
+  <link
+    name="FL_calf">
+    <inertial>
+      <origin
+        xyz="12.515E-03 -0.024E-03 -117.649E-03"
+        rpy="0 0 0" />
+      <mass
+        value="0.361" />
+      <inertia
+        ixx="3869.035E-06"
+        ixy="-0.093E-06"
+        ixz="298.636E-06"
+        iyy="3945.295E-06"
+        iyz="0.826E-06"
+        izz="150.991E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://a2_description/meshes/left_front_Link3.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+
+    <collision>
+      <origin xyz="0.018 -0.00 -0.08" rpy="0 -0.24 0" />
+      <geometry>
+        <box size="0.024 0.03 0.1" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.033 -0.00 -0.17" rpy="0 -0.03 0" />
+      <geometry>
+        <box size="0.022 0.03 0.08" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.029 -0.00 -0.236" rpy="0 0.2 0" />
+      <geometry>
+        <box size="0.02 0.036 0.06" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.008 -0.00 -0.23" rpy="0 0.68 0" />
+      <geometry>
+        <box size="0.01 0.036 0.06" />
+      </geometry>
+    </collision>
+
+  </link>
+  <joint
+    name="FL_calf_joint"
+    type="revolute">
+    <origin
+      xyz="0 0 -0.275"
+      rpy="0 0 0" />
+    <parent
+      link="FL_thigh" />
+    <child
+      link="FL_calf" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-2.77"
+      upper="-0.54"
+      effort="180.0"
+      velocity="14.6667" />
+  </joint>
+  <link
+    name="FL_foot">
+    <inertial>
+      <origin
+        xyz="-7.846E-03 0.012E-03 -9.403E-03"
+        rpy="0 0 0" />
+      <mass
+        value="0.046" />
+      <inertia
+        ixx="13.994E-06"
+        ixy="-0.003E-06"
+        ixz="3.992E-06"
+        iyy="14.434E-06"
+        iyz="-0.004E-06"
+        izz="15.404E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://a2_description/meshes/left_front_Link4.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.698039215686274 0.698039215686274 0.698039215686274 1" />
+      </material>
+    </visual>
+
+    <collision>
+      <origin xyz="0.0 -0.00 -0.0" rpy="0 0 0" />
+      <geometry>
+        <sphere radius="0.032" />
+      </geometry>
+    </collision>
+
+  </link>
+  <joint
+    name="FL_foot_joint"
+    type="fixed" dont_collapse="true">
+    <origin
+      xyz="0 0 -0.275"
+      rpy="0 0 0" />
+    <parent
+      link="FL_calf" />
+    <child
+      link="FL_foot" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+
+
+  <link
+    name="RL_hip">
+    <inertial>
+      <origin
+        xyz="3.270E-03 -16.220E-03 -0.097E-03"
+        rpy="0 0 0" />
+      <mass
+        value="1.620" />
+      <inertia
+        ixx="1468.092E-06"
+        ixy="-105.396E-06"
+        ixz="-7.294E-06"
+        iyy="1625.457E-06"
+        iyz="-0.444E-06"
+        izz="1631.122E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://a2_description/meshes/left_hind_Link1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+
+  </link>
+  <joint
+    name="RL_hip_joint"
+    type="revolute">
+    <origin
+      xyz="-0.25944 0.075113 0"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="RL_hip" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      lower="-1.01"
+      upper="1.01"
+      effort="120.0"
+      velocity="22.0" />
+  </joint>
+  <link
+    name="RL_thigh">
+    <inertial>
+      <origin
+        xyz="-3.268E-03 -31.110E-03 -53.896E-03"
+        rpy="0 0 0" />
+      <mass
+        value="3.079" />
+      <inertia
+        ixx="29271.794E-06"
+        ixy="337.285E-06"
+        ixz="-1251.409E-06"
+        iyy="26828.777E-06"
+        iyz="5283.783E-06"
+        izz="5121.720E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://a2_description/meshes/left_hind_Link2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+
+    <collision>
+      <origin xyz="0.0 -0.04 0" rpy="1.571 0 0" />
+      <geometry>
+        <cylinder radius="0.048" length="0.12" />
+      </geometry>
+    </collision>
+
+    <collision>
+      <origin xyz="-0.025 0.00 -0.09" rpy="0 0.01 0" />
+      <geometry>
+        <box size="0.055 0.036 0.17" />
+      </geometry>
+    </collision>
+
+    <collision>
+      <origin xyz="-0.022 0.00 -0.27" rpy="0 -0.75 0" />
+      <geometry>
+        <box size="0.017 0.05 0.05" />
+      </geometry>
+    </collision>
+
+  </link>
+  <joint
+    name="RL_thigh_joint"
+    type="revolute">
+    <origin
+      xyz="0 0.12779 0"
+      rpy="0 0 0" />
+    <parent
+      link="RL_hip" />
+    <child
+      link="RL_thigh" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-1.56"
+      upper="3.94"
+      effort="120.0"
+      velocity="22.0" />
+  </joint>
+  <link
+    name="RL_calf">
+    <inertial>
+      <origin
+        xyz="12.515E-03 -0.024E-03 -117.649E-03"
+        rpy="0 0 0" />
+      <mass
+        value="0.361" />
+      <inertia
+        ixx="3869.035E-06"
+        ixy="-0.093E-06"
+        ixz="298.636E-06"
+        iyy="3945.295E-06"
+        iyz="0.826E-06"
+        izz="150.991E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://a2_description/meshes/left_hind_Link3.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.018 -0.00 -0.08" rpy="0 -0.24 0" />
+      <geometry>
+        <box size="0.024 0.03 0.1" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.033 -0.00 -0.17" rpy="0 -0.03 0" />
+      <geometry>
+        <box size="0.022 0.03 0.08" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.029 -0.00 -0.236" rpy="0 0.2 0" />
+      <geometry>
+        <box size="0.02 0.036 0.06" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.008 -0.00 -0.23" rpy="0 0.68 0" />
+      <geometry>
+        <box size="0.01 0.036 0.06" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="RL_calf_joint"
+    type="revolute">
+    <origin
+      xyz="0 0 -0.275"
+      rpy="0 0 0" />
+    <parent
+      link="RL_thigh" />
+    <child
+      link="RL_calf" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-2.77"
+      upper="-0.54"
+      effort="180.0"
+      velocity="14.6667" />
+  </joint>
+  <link
+    name="RL_foot">
+    <inertial>
+      <origin
+        xyz="-7.846E-03 0.012E-03 -9.403E-03"
+        rpy="0 0 0" />
+      <mass
+        value="0.046" />
+      <inertia
+        ixx="13.994E-06"
+        ixy="-0.003E-06"
+        ixz="3.992E-06"
+        iyy="14.434E-06"
+        iyz="-0.004E-06"
+        izz="15.404E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://a2_description/meshes/left_hind_Link4.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.698039215686274 0.698039215686274 0.698039215686274 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.00 -0.0" rpy="0 0 0" />
+      <geometry>
+        <sphere radius="0.032" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="RL_foot_joint"
+    type="fixed" dont_collapse="true">
+    <origin
+      xyz="0 0 -0.275"
+      rpy="0 0 0" />
+    <parent
+      link="RL_calf" />
+    <child
+      link="RL_foot" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+
+
+  <link
+    name="FR_hip">
+    <inertial>
+      <origin
+        xyz="-2.465E-03 16.220E-03 0.318E-03"
+        rpy="0 0 0" />
+      <mass
+        value="1.620" />
+      <inertia
+        ixx="1483.677E-06"
+        ixy="-56.616E-06"
+        ixz="-5.890E-06"
+        iyy="1632.784E-06"
+        iyz="25.536E-06"
+        izz="1622.864E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://a2_description/meshes/right_front_Link1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+
+  </link>
+  <joint
+    name="FR_hip_joint"
+    type="revolute">
+    <origin
+      xyz="0.25944 -0.075113 0"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="FR_hip" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      lower="-1.01"
+      upper="1.01"
+      effort="120.0"
+      velocity="22.0" />
+  </joint>
+  <link
+    name="FR_thigh">
+    <inertial>
+      <origin
+        xyz="-3.256E-03 31.125E-03 -53.921E-03"
+        rpy="0 0 0" />
+      <mass
+        value="3.077" />
+      <inertia
+        ixx="29255.209E-06"
+        ixy="-334.771E-06"
+        ixz="-1255.239E-06"
+        iyy="26819.094E-06"
+        iyz="-5288.175E-06"
+        izz="5125.147E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://a2_description/meshes/right_front_Link2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+
+    <collision>
+      <origin xyz="0.0 0.04 0" rpy="1.571 0 0" />
+      <geometry>
+        <cylinder radius="0.048" length="0.12" />
+      </geometry>
+    </collision>
+
+    <collision>
+      <origin xyz="-0.025 0.00 -0.09" rpy="0 0.01 0" />
+      <geometry>
+        <box size="0.055 0.036 0.17" />
+      </geometry>
+    </collision>
+
+    <collision>
+      <origin xyz="-0.022 0.00 -0.27" rpy="0 -0.75 0" />
+      <geometry>
+        <box size="0.017 0.05 0.05" />
+      </geometry>
+    </collision>
+
+  </link>
+  <joint
+    name="FR_thigh_joint"
+    type="revolute">
+    <origin
+      xyz="0 -0.12779 0"
+      rpy="0 0 0" />
+    <parent
+      link="FR_hip" />
+    <child
+      link="FR_thigh" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-2.34"
+      upper="3.15"
+      effort="120.0"
+      velocity="22.0" />
+  </joint>
+  <link
+    name="FR_calf">
+    <inertial>
+      <origin
+        xyz="12.515E-03 0.016E-03 -117.649E-03"
+        rpy="0 0 0" />
+      <mass
+        value="0.361" />
+      <inertia
+        ixx="3869.035E-06"
+        ixy="0.087E-06"
+        ixz="298.636E-06"
+        iyy="3945.295E-06"
+        iyz="-1.285E-06"
+        izz="150.991E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://a2_description/meshes/right_front_Link3.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.018 -0.00 -0.08" rpy="0 -0.24 0" />
+      <geometry>
+        <box size="0.024 0.03 0.1" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.033 -0.00 -0.17" rpy="0 -0.03 0" />
+      <geometry>
+        <box size="0.022 0.03 0.08" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.029 -0.00 -0.236" rpy="0 0.2 0" />
+      <geometry>
+        <box size="0.02 0.036 0.06" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.008 -0.00 -0.23" rpy="0 0.68 0" />
+      <geometry>
+        <box size="0.01 0.036 0.06" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="FR_calf_joint"
+    type="revolute">
+    <origin
+      xyz="0 0 -0.275"
+      rpy="0 0 0" />
+    <parent
+      link="FR_thigh" />
+    <child
+      link="FR_calf" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-2.77"
+      upper="-0.54"
+      effort="180.0"
+      velocity="14.6667" />
+  </joint>
+  <link
+    name="FR_foot">
+    <inertial>
+      <origin
+        xyz="-7.846E-03 0.012E-03 -9.403E-03"
+        rpy="0 0 0" />
+      <mass
+        value="0.046" />
+      <inertia
+        ixx="13.994E-06"
+        ixy="-0.003E-06"
+        ixz="3.992E-06"
+        iyy="14.434E-06"
+        iyz="-0.004E-06"
+        izz="15.404E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://a2_description/meshes/right_front_Link4.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.698039215686274 0.698039215686274 0.698039215686274 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.00 -0.0" rpy="0 0 0" />
+      <geometry>
+        <sphere radius="0.032" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="FR_foot_joint"
+    type="fixed" dont_collapse="true">
+    <origin
+      xyz="0 0 -0.275"
+      rpy="0 0 0" />
+    <parent
+      link="FR_calf" />
+    <child
+      link="FR_foot" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+
+
+  <link
+    name="RR_hip">
+    <inertial>
+      <origin
+        xyz="3.270E-03 16.220E-03 -0.037E-03"
+        rpy="0 0 0" />
+      <mass
+        value="1.620" />
+      <inertia
+        ixx="1464.949E-06"
+        ixy="105.396E-06"
+        ixz="-9.437E-06"
+        iyy="1625.469E-06"
+        iyz="4.282E-06"
+        izz="1634.276E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://a2_description/meshes/right_hind_Link1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+
+  </link>
+  <joint
+    name="RR_hip_joint"
+    type="revolute">
+    <origin
+      xyz="-0.25944 -0.075113 0"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="RR_hip" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      lower="-1.01"
+      upper="1.01"
+      effort="120.0"
+      velocity="22.0" />
+  </joint>
+  <link
+    name="RR_thigh">
+    <inertial>
+      <origin
+        xyz="-3.256E-03 31.125E-03 -53.921E-03"
+        rpy="0 0 0" />
+      <mass
+        value="3.077" />
+      <inertia
+        ixx="29255.209E-06"
+        ixy="-334.771E-06"
+        ixz="-1255.239E-06"
+        iyy="26819.094E-06"
+        iyz="-5288.175E-06"
+        izz="5125.147E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://a2_description/meshes/right_hind_Link2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 0.04 0" rpy="1.571 0 0" />
+      <geometry>
+        <cylinder radius="0.048" length="0.12" />
+      </geometry>
+    </collision>
+
+    <collision>
+      <origin xyz="-0.025 0.00 -0.09" rpy="0 0.01 0" />
+      <geometry>
+        <box size="0.055 0.036 0.17" />
+      </geometry>
+    </collision>
+
+    <collision>
+      <origin xyz="-0.022 0.00 -0.27" rpy="0 -0.75 0" />
+      <geometry>
+        <box size="0.017 0.05 0.05" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="RR_thigh_joint"
+    type="revolute">
+    <origin
+      xyz="0 -0.12779 0"
+      rpy="0 0 0" />
+    <parent
+      link="RR_hip" />
+    <child
+      link="RR_thigh" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-1.56"
+      upper="3.94"
+      effort="120.0"
+      velocity="22.0" />
+  </joint>
+  <link
+    name="RR_calf">
+    <inertial>
+      <origin
+        xyz="12.515E-03 0.016E-03 -117.649E-03"
+        rpy="0 0 0" />
+      <mass
+        value="0.361" />
+      <inertia
+        ixx="3869.035E-06"
+        ixy="0.087E-06"
+        ixz="298.636E-06"
+        iyy="3945.295E-06"
+        iyz="-1.285E-06"
+        izz="150.991E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://a2_description/meshes/right_hind_Link3.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.018 -0.00 -0.08" rpy="0 -0.24 0" />
+      <geometry>
+        <box size="0.024 0.03 0.1" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.033 -0.00 -0.17" rpy="0 -0.03 0" />
+      <geometry>
+        <box size="0.022 0.03 0.08" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.029 -0.00 -0.236" rpy="0 0.2 0" />
+      <geometry>
+        <box size="0.02 0.036 0.06" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin xyz="0.008 -0.00 -0.23" rpy="0 0.68 0" />
+      <geometry>
+        <box size="0.01 0.036 0.06" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="RR_calf_joint"
+    type="revolute">
+    <origin
+      xyz="0 0 -0.275"
+      rpy="0 0 0" />
+    <parent
+      link="RR_thigh" />
+    <child
+      link="RR_calf" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-2.77"
+      upper="-0.54"
+      effort="180.0"
+      velocity="14.6667" />
+  </joint>
+  <link
+    name="RR_foot">
+    <inertial>
+      <origin
+        xyz="-7.846E-03 0.012E-03 -9.403E-03"
+        rpy="0 0 0" />
+      <mass
+        value="0.046" />
+      <inertia
+        ixx="13.994E-06"
+        ixy="-0.003E-06"
+        ixz="3.992E-06"
+        iyy="14.434E-06"
+        iyz="-0.004E-06"
+        izz="15.404E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://a2_description/meshes/right_hind_Link4.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.698039215686274 0.698039215686274 0.698039215686274 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="0.0 -0.00 -0.0" rpy="0 0 0" />
+      <geometry>
+        <sphere radius="0.032" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="RR_foot_joint"
+    type="fixed" dont_collapse="true">
+    <origin
+      xyz="0 0 -0.275"
+      rpy="0 0 0" />
+    <parent
+      link="RR_calf" />
+    <child
+      link="RR_foot" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+
+  <link name="camera_link"/>
+  <joint name="camera_joint" type="fixed">
+    <origin xyz="0.3381 0.0336 0.0525" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="camera_link"/>
+  </joint>
+
+  <!-- The A2 body mesh already contains its embedded LiDAR housings. These
+       massless links are the official Unitree sensor frames; adding another
+       visual/collision body here would duplicate the physical sensor. -->
+  <link name="front_lidar_link"/>
+  <joint name="front_lidar_joint" type="fixed">
+    <origin xyz="0.33767 0.0 0.08134" rpy="1.5708 0 1.5708"/>
+    <parent link="base_link"/>
+    <child link="front_lidar_link"/>
+  </joint>
+
+  <link name="rear_lidar_link"/>
+  <joint name="rear_lidar_joint" type="fixed">
+    <origin xyz="0.0 0.005997 -0.617643765" rpy="0 3.14159 0"/>
+    <parent link="front_lidar_link"/>
+    <child link="rear_lidar_link"/>
+  </joint>
+
+  <!-- Hesai's spinning axis is Z. This optical frame has no physical geometry
+       or mass; it only gives the simulated JT128 the vendor's native axes at
+       the existing front LiDAR housing. -->
+  <link name="hesai_jt128_link"/>
+  <joint name="hesai_jt128_joint" type="fixed">
+    <origin xyz="$(arg lidar_xyz)" rpy="$(arg lidar_rpy)"/>
+    <parent link="base_link"/>
+    <child link="hesai_jt128_link"/>
+  </joint>
+
+  <!-- The simulated IMU is collocated with the LiDAR, so FAST-LIO extrinsics
+       are identity. A separate link keeps the TF contract explicit. -->
+  <link name="hesai_jt128_imu_link"/>
+  <joint name="hesai_jt128_imu_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <parent link="hesai_jt128_link"/>
+    <child link="hesai_jt128_imu_link"/>
+  </joint>
+
+  <gazebo reference="hesai_jt128_link">
+    <preserveFixedJoint>true</preserveFixedJoint>
+    <sensor name="jt128_gpu_lidar" type="gpu_lidar">
+      <topic>/a2/jt128</topic>
+      <update_rate>$(arg lidar_update_rate)</update_rate>
+      <always_on>true</always_on>
+      <visualize>$(arg lidar_visualize)</visualize>
+      <ignition_frame_id>hesai_jt128_link</ignition_frame_id>
+      <lidar>
+        <scan>
+          <horizontal>
+            <samples>$(arg lidar_horizontal_samples)</samples>
+            <resolution>1</resolution>
+            <min_angle>-3.141592653589793</min_angle>
+            <max_angle>3.141592653589793</max_angle>
+          </horizontal>
+          <vertical>
+            <samples>128</samples>
+            <resolution>1</resolution>
+            <min_angle>-0.4363323129985824</min_angle>
+            <max_angle>0.2617993877991494</max_angle>
+          </vertical>
+        </scan>
+        <range>
+          <min>0.5</min>
+          <max>50.0</max>
+          <resolution>0.01</resolution>
+        </range>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.01</stddev>
+        </noise>
+      </lidar>
+    </sensor>
+  </gazebo>
+
+  <!-- Gazebo Sim may collapse a massless fixed child link while converting
+       URDF to SDF. Attach the collocated sensor to the retained LiDAR link;
+       the adapter restores hesai_jt128_imu_link as the ROS frame_id. -->
+  <gazebo reference="hesai_jt128_link">
+    <sensor name="jt128_imu" type="imu">
+      <topic>/a2/imu_raw</topic>
+      <update_rate>200</update_rate>
+      <always_on>true</always_on>
+      <ignition_frame_id>hesai_jt128_link</ignition_frame_id>
+      <imu>
+        <angular_velocity>
+          <x><noise type="gaussian"><mean>0</mean><stddev>0.001</stddev></noise></x>
+          <y><noise type="gaussian"><mean>0</mean><stddev>0.001</stddev></noise></y>
+          <z><noise type="gaussian"><mean>0</mean><stddev>0.001</stddev></noise></z>
+        </angular_velocity>
+        <linear_acceleration>
+          <x><noise type="gaussian"><mean>0</mean><stddev>0.02</stddev></noise></x>
+          <y><noise type="gaussian"><mean>0</mean><stddev>0.02</stddev></noise></y>
+          <z><noise type="gaussian"><mean>0</mean><stddev>0.02</stddev></noise></z>
+        </linear_acceleration>
+      </imu>
+    </sensor>
+  </gazebo>
+
+  <gazebo>
+    <self_collide>false</self_collide>
+    <plugin filename="ignition-gazebo-odometry-publisher-system"
+            name="ignition::gazebo::systems::OdometryPublisher">
+      <odom_publish_frequency>50</odom_publish_frequency>
+      <odom_topic>/a2/ground_truth/odom</odom_topic>
+      <odom_frame>world</odom_frame>
+      <robot_base_frame>base_link</robot_base_frame>
+      <dimensions>3</dimensions>
+    </plugin>
+    <plugin filename="ignition-gazebo-joint-state-publisher-system"
+            name="ignition::gazebo::systems::JointStatePublisher">
+      <topic>/a2/joint_states</topic>
+    </plugin>
+    <xacro:unless value="${dynamic_mode}">
+      <!-- Simulation-only planar base motion. Twist commands are integrated by
+           Gazebo, so the LiDAR and IMU observe continuous translation and yaw. -->
+      <plugin filename="ignition-gazebo-velocity-control-system"
+              name="ignition::gazebo::systems::VelocityControl">
+        <topic>/cmd_vel</topic>
+      </plugin>
+    </xacro:unless>
+    <xacro:if value="${assisted_mode}">
+      <!-- Gait visualization / localization mode. The leg controller still
+           runs, while this separate command keeps scripted paths observable.
+           Do not use this mode for contact-dynamics evaluation. -->
+      <plugin filename="ignition-gazebo-velocity-control-system"
+              name="ignition::gazebo::systems::VelocityControl">
+        <topic>/a2/base_velocity_assist</topic>
+      </plugin>
+    </xacro:if>
+  </gazebo>
+
+  <xacro:unless value="${dynamic_mode}">
+    <!-- Conservative pose used by the localization-only rigid-body mode. -->
+    <xacro:joint_position_controller joint="FL_hip_joint" position="0.0" p_gain="180.0" d_gain="8.0" effort="120.0"/>
+    <xacro:joint_position_controller joint="FL_thigh_joint" position="0.4" p_gain="180.0" d_gain="8.0" effort="120.0"/>
+    <xacro:joint_position_controller joint="FL_calf_joint" position="-0.8" p_gain="180.0" d_gain="8.0" effort="180.0"/>
+    <xacro:joint_position_controller joint="FR_hip_joint" position="0.0" p_gain="180.0" d_gain="8.0" effort="120.0"/>
+    <xacro:joint_position_controller joint="FR_thigh_joint" position="0.4" p_gain="180.0" d_gain="8.0" effort="120.0"/>
+    <xacro:joint_position_controller joint="FR_calf_joint" position="-0.8" p_gain="180.0" d_gain="8.0" effort="180.0"/>
+    <xacro:joint_position_controller joint="RL_hip_joint" position="0.0" p_gain="180.0" d_gain="8.0" effort="120.0"/>
+    <xacro:joint_position_controller joint="RL_thigh_joint" position="0.4" p_gain="180.0" d_gain="8.0" effort="120.0"/>
+    <xacro:joint_position_controller joint="RL_calf_joint" position="-0.8" p_gain="180.0" d_gain="8.0" effort="180.0"/>
+    <xacro:joint_position_controller joint="RR_hip_joint" position="0.0" p_gain="180.0" d_gain="8.0" effort="120.0"/>
+    <xacro:joint_position_controller joint="RR_thigh_joint" position="0.4" p_gain="180.0" d_gain="8.0" effort="120.0"/>
+    <xacro:joint_position_controller joint="RR_calf_joint" position="-0.8" p_gain="180.0" d_gain="8.0" effort="180.0"/>
+  </xacro:unless>
+
+  <xacro:if value="${dynamic_mode}">
+    <!-- Gains, limits, and nominal pose follow Unitree's A2 mjlab deployment
+         configuration. The ROS node may later be replaced by its ONNX policy
+         runner without changing these Gazebo command topics. -->
+    <gazebo>
+      <plugin filename="libignition-gazebo-joint-trajectory-controller-system.so"
+              name="ignition::gazebo::systems::JointTrajectoryController">
+        <joint_name>FL_hip_joint</joint_name>
+        <joint_name>FL_thigh_joint</joint_name>
+        <joint_name>FL_calf_joint</joint_name>
+        <joint_name>FR_hip_joint</joint_name>
+        <joint_name>FR_thigh_joint</joint_name>
+        <joint_name>FR_calf_joint</joint_name>
+        <joint_name>RL_hip_joint</joint_name>
+        <joint_name>RL_thigh_joint</joint_name>
+        <joint_name>RL_calf_joint</joint_name>
+        <joint_name>RR_hip_joint</joint_name>
+        <joint_name>RR_thigh_joint</joint_name>
+        <joint_name>RR_calf_joint</joint_name>
+
+        <initial_position>-0.1</initial_position>
+        <initial_position>0.9</initial_position>
+        <initial_position>-1.8</initial_position>
+        <initial_position>0.1</initial_position>
+        <initial_position>0.9</initial_position>
+        <initial_position>-1.8</initial_position>
+        <initial_position>-0.1</initial_position>
+        <initial_position>0.9</initial_position>
+        <initial_position>-1.8</initial_position>
+        <initial_position>0.1</initial_position>
+        <initial_position>0.9</initial_position>
+        <initial_position>-1.8</initial_position>
+
+        <position_p_gain>100</position_p_gain>
+        <position_p_gain>100</position_p_gain>
+        <position_p_gain>150</position_p_gain>
+        <position_p_gain>100</position_p_gain>
+        <position_p_gain>100</position_p_gain>
+        <position_p_gain>150</position_p_gain>
+        <position_p_gain>100</position_p_gain>
+        <position_p_gain>100</position_p_gain>
+        <position_p_gain>150</position_p_gain>
+        <position_p_gain>100</position_p_gain>
+        <position_p_gain>100</position_p_gain>
+        <position_p_gain>150</position_p_gain>
+
+        <position_d_gain>4</position_d_gain>
+        <position_d_gain>4</position_d_gain>
+        <position_d_gain>6</position_d_gain>
+        <position_d_gain>4</position_d_gain>
+        <position_d_gain>4</position_d_gain>
+        <position_d_gain>6</position_d_gain>
+        <position_d_gain>4</position_d_gain>
+        <position_d_gain>4</position_d_gain>
+        <position_d_gain>6</position_d_gain>
+        <position_d_gain>4</position_d_gain>
+        <position_d_gain>4</position_d_gain>
+        <position_d_gain>6</position_d_gain>
+
+        <position_cmd_min>-120</position_cmd_min>
+        <position_cmd_min>-120</position_cmd_min>
+        <position_cmd_min>-180</position_cmd_min>
+        <position_cmd_min>-120</position_cmd_min>
+        <position_cmd_min>-120</position_cmd_min>
+        <position_cmd_min>-180</position_cmd_min>
+        <position_cmd_min>-120</position_cmd_min>
+        <position_cmd_min>-120</position_cmd_min>
+        <position_cmd_min>-180</position_cmd_min>
+        <position_cmd_min>-120</position_cmd_min>
+        <position_cmd_min>-120</position_cmd_min>
+        <position_cmd_min>-180</position_cmd_min>
+
+        <position_cmd_max>120</position_cmd_max>
+        <position_cmd_max>120</position_cmd_max>
+        <position_cmd_max>180</position_cmd_max>
+        <position_cmd_max>120</position_cmd_max>
+        <position_cmd_max>120</position_cmd_max>
+        <position_cmd_max>180</position_cmd_max>
+        <position_cmd_max>120</position_cmd_max>
+        <position_cmd_max>120</position_cmd_max>
+        <position_cmd_max>180</position_cmd_max>
+        <position_cmd_max>120</position_cmd_max>
+        <position_cmd_max>120</position_cmd_max>
+        <position_cmd_max>180</position_cmd_max>
+      </plugin>
+    </gazebo>
+  </xacro:if>
+
+</robot>

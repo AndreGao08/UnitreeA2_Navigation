@@ -1,0 +1,21 @@
+a2_gait_controller:
+  ros__parameters:
+    control_rate: 50.0
+    stand_duration: 3.0
+    command_timeout: 0.5
+    gait_period: 0.6
+
+    max_linear_speed: 0.6
+    max_lateral_speed: 0.3
+    max_yaw_rate: 0.8
+    max_linear_accel: 0.6
+    max_yaw_accel: 1.2
+
+    # Conservative open-loop commissioning gait. These values can be tuned
+    # without changing the ROS / Gazebo joint command interface.
+    stride_gain: 0.80
+    lateral_gain: 0.22
+    yaw_radius: 0.32
+    max_stride: 0.22
+    max_lateral: 0.12
+    swing_knee_lift: 0.20

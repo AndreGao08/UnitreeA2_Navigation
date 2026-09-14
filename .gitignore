@@ -1,0 +1,20 @@
+/build/
+/install/
+/log/
+**/.pytest_cache/
+**/__pycache__/
+*.pyc
+*.pcd
+
+# Runtime and editor artifacts
+.vscode/
+.idea/
+*.bag
+*.db3
+*.mcap
+
+# Reference/vendor checkouts are maintained independently.
+/third_party/
+
+# FAST-LIO remains its own Git repository.
+/FAST_LIO_Hesai/
