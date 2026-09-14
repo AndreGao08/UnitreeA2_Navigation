@@ -4,7 +4,7 @@ This workspace integrates the official Unitree A2 model, a simulated 128-line
 Hesai-compatible LiDAR and IMU, the ROS 2 branch of FAST-LIO2, standard TF
 output, and trajectory evaluation in Gazebo Fortress.
 
-## Phases 1-7 delivered
+## Phases 1-8 delivered
 
 1. ROS 2 Humble workspace and dependency/build scripts.
 2. Official A2 model and meshes packaged as `a2_description`.
@@ -16,6 +16,8 @@ output, and trajectory evaluation in Gazebo Fortress.
    synthetic/full-simulator headless validation scripts.
 7. PCD map saving, map loading, coarse/fine scan-to-map relocalization,
    `map -> odom -> base_link` TF fusion, and global base pose output.
+8. PCD-to-Nav2 map projection, GSeg3D ground segmentation, Ground Consistency
+   local costmap, static global planning, and Nav2 `/cmd_vel` gait control.
 
 ## Packages
 
@@ -26,11 +28,13 @@ output, and trajectory evaluation in Gazebo Fortress.
 - `a2_localization_bringup`: one-command launch, TF adaptation, test trajectories,
   RViz, and APE-like ground-truth evaluation.
 - `a2_map_localization`: PCD map publisher and ROS 2 scan-to-map relocalizer.
+- `a2_terrain_nav`: GSeg3D/Ground Consistency/Nav2 configuration and launch.
 
 ## Install, build, run
 
 ```bash
 ./scripts/install_dependencies.sh
+./scripts/fetch_navigation_dependencies.sh
 ./scripts/build_ros2.sh
 source /opt/ros/humble/setup.bash
 source install/setup.bash
@@ -177,6 +181,46 @@ robot origin.
 During relocalization, use `/a2/localization` as the global robot pose. The TF
 chain is `map -> odom -> base_link`; `/a2/odometry` remains available as local
 continuous odometry.
+
+## Terrain-aware navigation
+
+After saving `maps/a2_map.pcd`, launch the complete relocalization and navigation
+stack with:
+
+```bash
+source /opt/ros/humble/setup.bash
+source install/setup.bash
+ros2 launch a2_terrain_nav a2_terrain_navigation.launch.py
+```
+
+The launch automatically creates or refreshes `maps/a2_nav2_map.yaml` and
+`maps/a2_nav2_map.pgm` from the PCD. In RViz:
+
+1. keep the robot stationary until FAST-LIO initializes;
+2. use **2D Pose Estimate** to initialize `map -> odom`;
+3. wait for `/a2/relocalization/status` to report localization success;
+4. use **Nav2 Goal** to send a navigation target.
+
+Nav2 publishes `/cmd_vel`; the existing A2 gait controller consumes it. The
+global costmap uses the generated static map. The local costmap deliberately
+does not consume the raw JT128 cloud through ObstacleLayer/VoxelLayer: GSeg3D
+first separates ground and non-ground points, and Ground Consistency evaluates
+non-ground height relative to nearby ground before inflation.
+
+Useful diagnostics:
+
+```bash
+ros2 topic hz /ground_segmentation/ground_points
+ros2 topic hz /ground_segmentation/obstacle_points
+ros2 topic echo /a2/relocalization/status
+ros2 lifecycle get /controller_server
+ros2 action list | grep navigate
+```
+
+The bundled `gseg3d_a2.yaml` uses a nominal `lidar_to_ground: -0.46` for the
+Gazebo gait demo. Measure and replace this value before using the stack on the
+real robot. Ground classification is not the same as traversability; slope,
+roughness, step and foothold cost layers remain a later upgrade.
 
 ## Important real-robot boundary
 

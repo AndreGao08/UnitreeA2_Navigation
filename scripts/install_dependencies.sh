@@ -11,6 +11,11 @@ sudo apt-get install -y \
   ros-humble-rmw-fastrtps-cpp \
   ros-humble-pcl-ros \
   ros-humble-sensor-msgs-py \
+  ros-humble-navigation2 \
+  ros-humble-nav2-bringup \
   python3-pytest \
+  python3-numpy \
   libeigen3-dev \
-  libpcl-dev
+  libpcl-dev \
+  libgtest-dev \
+  libnanoflann-dev
