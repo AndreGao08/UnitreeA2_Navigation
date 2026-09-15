@@ -1,64 +1,86 @@
-# Unitree A2 + Hesai JT128 localization (ROS 2 Humble)
+# Unitree A2 + Hesai JT128 定位与导航（ROS 2 Humble）
 
-This workspace integrates the official Unitree A2 model, a simulated 128-line
-Hesai-compatible LiDAR and IMU, the ROS 2 branch of FAST-LIO2, standard TF
-output, and trajectory evaluation in Gazebo Fortress.
+本工程将 Unitree A2 URDF、Hesai JT128 激光雷达、IMU、ROS 2 版本
+FAST-LIO、点云地图重定位、GSeg3D 地形分割和 Nav2 导航整合到 Gazebo
+Fortress 仿真环境中。当前目标是得到机器人 `base_link` 在地图坐标系中的
+全局位姿，并使用网页或 RViz 完成建图、定位和导航。
 
-## Phases 1-8 delivered
+## 一、总体坐标系和数据流
 
-1. ROS 2 Humble workspace and dependency/build scripts.
-2. Official A2 model and meshes packaged as `a2_description`.
-3. Configurable JT128/IMU links, TF, collision geometry, and standing pose.
-4. Gazebo Fortress sensors and JT128 PointCloud2/IMU adapters.
-5. FAST-LIO ROS 2 integration with configurable frames, initialization window,
-   map output, and corrected `odom -> base_link` output.
-6. RViz, deterministic trajectories, ground-truth evaluation, unit tests, and
-   synthetic/full-simulator headless validation scripts.
-7. PCD map saving, map loading, coarse/fine scan-to-map relocalization,
-   `map -> odom -> base_link` TF fusion, and global base pose output.
-8. PCD-to-Nav2 map projection, GSeg3D ground segmentation, Ground Consistency
-   local costmap, static global planning, and Nav2 `/cmd_vel` gait control.
+系统使用以下 TF 坐标链：
 
-## Packages
+```text
+map -> odom -> base_link
+```
 
-- `FAST_LIO_Hesai`: Hesai-adapted FAST-LIO2, checked out on its `ROS2` branch.
-- `a2_description`: official A2 URDF/meshes plus configurable JT128 and IMU links.
-- `a2_gazebo`: an asymmetric localization test world.
-- `hesai_jt128_sim`: produces `x,y,z,intensity,ring,timestamp` PointCloud2 fields.
-- `a2_localization_bringup`: one-command launch, TF adaptation, test trajectories,
-  RViz, and APE-like ground-truth evaluation.
-- `a2_map_localization`: PCD map publisher and ROS 2 scan-to-map relocalizer.
-- `a2_terrain_nav`: GSeg3D/Ground Consistency/Nav2 configuration and launch.
+- FAST-LIO 输出高频局部里程计 `odom -> base_link`。
+- `a2_map_localization` 使用保存的 PCD 地图，估计并修正低频的
+  `map -> odom`。
+- 机器人最终的全局机身位姿是 TF 中的 `map -> base_link`，同时发布在
+  `/a2/localization`。
+- `/a2/odometry` 是局部 `odom -> base_link` 位姿，不能直接当作全局地图位姿。
+- `/a2/ground_truth/odom` 只用于仿真评估，不会输入 FAST-LIO 或导航。
 
-## Install, build, run
+完整数据和控制链路如下：
+
+```text
+Gazebo JT128/IMU
+       │
+       ├─ /lidar_points + /lidar_imu
+       │           │
+       │        FAST-LIO ── /a2/odometry ── odom -> base_link
+       │           │
+       │        建图时保存 maps/a2_map.pcd
+       │
+       └─ GSeg3D（使用 IMU 重力方向判断坡度）
+                       │
+          Nav2 静态全局代价地图 + Ground Consistency 局部代价地图
+                       │
+          /goal_pose（RViz/网页） -> Nav2 -> /cmd_vel_nav
+                       │
+              velocity_smoother -> /cmd_vel
+                       │
+       定位安全门 -> /a2/safe_cmd_vel -> A2 gait_controller -> Gazebo
+```
+
+## 二、软件包
+
+| 软件包 | 功能 |
+|---|---|
+| `FAST_LIO_Hesai` | Hesai 适配版 FAST-LIO2，使用 ROS 2 分支 |
+| `a2_description` | Unitree A2 URDF、网格和 JT128/IMU 坐标系 |
+| `a2_gazebo` | A2 Gazebo Fortress 仿真世界和传感器 |
+| `hesai_jt128_sim` | 生成 JT128 PointCloud2 和 IMU 话题 |
+| `a2_localization_bringup` | 仿真、FAST-LIO、TF、步态和建图启动入口 |
+| `a2_map_localization` | PCD 地图发布、粗配准和精配准重定位 |
+| `a2_terrain_nav` | GSeg3D、Ground Consistency 和 Nav2 导航 |
+| `web/robot_server` | 网页控制台的 ROS 2 后端 |
+| `web/frontend` | 建图、定位、导航和点云显示前端 |
+
+## 三、安装和编译
+
+在工程根目录执行：
 
 ```bash
+source /opt/ros/humble/setup.bash
 ./scripts/install_dependencies.sh
 ./scripts/fetch_navigation_dependencies.sh
 ./scripts/build_ros2.sh
-source /opt/ros/humble/setup.bash
 source install/setup.bash
-ros2 launch a2_localization_bringup a2_jt128_gazebo.launch.py
 ```
 
-To visualize the analytic A2 gait while keeping the commanded localization
-trajectory accurate, use the assisted gait demonstration mode:
+也可以手动编译：
 
 ```bash
-ros2 launch a2_localization_bringup a2_jt128_gazebo.launch.py \
-  locomotion_mode:=gait_demo trajectory:=square
+colcon build --symlink-install
+source install/setup.bash
 ```
 
-`gait_demo` animates all 12 joints and assists the base motion. Its floor is
-visible to the simulated LiDAR but has no contact, so this mode is for FAST-LIO
-and visualization rather than foot-contact validation. Use
-`locomotion_mode:=dynamic` only for controller/contact experiments; the bundled
-open-loop gait is not a speed-tracking A2 locomotion policy.
+## 四、建图流程
 
-## Build and save a map
+### 4.1 启动建图仿真
 
-Run mapping in manual mode. The launch defaults to
-`/home/gao/Documents/UnitreeA2_Localization/maps/a2_map.pcd` in this workspace:
+建图模式默认使用工程内的 `maps/a2_map.pcd` 作为输出文件：
 
 ```bash
 ros2 launch a2_localization_bringup a2_jt128_gazebo.launch.py \
@@ -67,196 +89,285 @@ ros2 launch a2_localization_bringup a2_jt128_gazebo.launch.py \
   trajectory:=manual
 ```
 
-Send any `geometry_msgs/msg/Twist` command source to `/cmd_vel`, for example:
+`manual` 表示机器人不会自动运动，需要外部发布 `/cmd_vel`。例如：
 
 ```bash
 ros2 topic pub -r 20 /cmd_vel geometry_msgs/msg/Twist \
-  "{linear: {x: 0.25}, angular: {z: 0.15}}"
+  "{linear: {x: 0.25, y: 0.0}, angular: {z: 0.15}}"
 ```
 
-After covering the environment, stop the command publisher and press `Ctrl+C`
-in the launch terminal. FAST-LIO automatically writes the PCD during clean
-shutdown; no save service call is required. `/map_save` remains available only
-as an optional mid-run snapshot. The output directory is created automatically.
+应让机器人覆盖需要建图的区域，并尽量保持传感器运动连续。建图期间可在
+RViz 中观察 `/cloud_registered`。
 
-## Relocalize in the saved map
+### 4.2 保存地图
 
-Restart the simulation in relocalization mode with the same sensor extrinsics:
+覆盖环境后，先停止速度发布，再回到启动仿真终端按 `Ctrl+C`。FAST-LIO
+在干净退出时会自动保存：
+
+```text
+maps/a2_map.pcd
+```
+
+工程也保留 `/map_save` 服务用于中途快照，但正常流程只需退出启动程序即可。
+不要在 FAST-LIO 仍在写文件时强制杀进程。
+
+## 五、定位和重定位流程
+
+### 5.1 启动定位
+
+使用已经保存的 PCD：
 
 ```bash
 ros2 launch a2_localization_bringup a2_jt128_gazebo.launch.py \
   operation_mode:=relocalization \
-  locomotion_mode:=gait_demo trajectory:=manual
+  map_path:=maps/a2_map.pcd \
+  locomotion_mode:=gait_demo \
+  trajectory:=manual
 ```
 
-Keep the robot still while FAST-LIO initializes, then use RViz **2D Pose
-Estimate** to provide a rough `map -> base_link` pose. For repeatable simulation
-started near the original map origin, add `auto_initialize:=true`.
+启动后先让机器人保持静止，等待 FAST-LIO 完成 IMU 和雷达初始化。然后在
+RViz 使用 **2D Pose Estimate** 发布 `/initialpose`，给出机器人在 `map`
+坐标系中的大致位置和朝向。
 
-The localizer performs coarse and fine ICP, rejects low-overlap or high-RMSE
-matches, and then runs periodic low-frequency corrections. FAST-LIO remains the
-continuous high-frequency odometry source. Useful interfaces are:
-
-| Topic/service | Purpose |
-|---|---|
-| `/a2/map` | Saved PCD in the `map` frame |
-| `/initialpose` | Rough `map -> base_link` initial estimate |
-| `/a2/localization` | Relocalized `map -> base_link` odometry |
-| `/a2/relocalization/status` | Initialization and match state |
-| `/a2/relocalization/rmse` | Accepted/candidate registration RMSE |
-| `/a2/relocalization/overlap` | Scan overlap fraction in `[0, 1]` |
-| `/a2/relocalize` | Retry using the last accepted/initial estimate |
-| `/a2/relocalization/reset` | Clear global localization and wait for a new initial pose |
-
-This follows the low-rate global correction plus high-rate FAST-LIO approach in
-[FAST_LIO_LOCALIZATION](https://github.com/HViktorTsoi/FAST_LIO_LOCALIZATION),
-ported from ROS 1/Python 2/Open3D to ROS 2 Humble/PCL. The initial pose is
-properly converted from `map -> base_link` to `map -> odom`, and correction
-updates are quality-gated, jump-limited, and smoothed.
-
-The simulator launch defaults to `rmw_fastrtps_cpp` even if the parent shell
-exports another RMW implementation. JT128 point clouds are large, and Fast DDS
-uses its local shared-memory transport for the simulator, adapters, and
-FAST-LIO. Override this only when deliberately testing another middleware:
+对于从地图原点附近开始的可重复仿真，可以使用：
 
 ```bash
 ros2 launch a2_localization_bringup a2_jt128_gazebo.launch.py \
-  rmw_implementation:=rmw_cyclonedds_cpp
+  operation_mode:=relocalization \
+  map_path:=maps/a2_map.pcd \
+  auto_initialize:=true \
+  locomotion_mode:=gait_demo \
+  trajectory:=manual
 ```
 
-For a repeatable headless test:
+### 5.2 重定位判定
+
+重定位模块执行粗配准和精配准，并根据 RMSE、点云重叠率和位姿跳变阈值
+拒绝错误匹配。通过后发布 `map -> odom` 修正。FAST-LIO 仍然负责高频
+局部运动估计。
+
+导航前必须同时满足：
+
+- `/a2/relocalization/status` 为 `LOCALIZED`；
+- `/a2/odometry/status` 为 `OK`；
+- TF 中存在 `map -> odom -> base_link`；
+- `/a2/odometry` 持续发布。
+
+只要定位状态不安全，定位安全门就会发布零速度，机器人不会移动。
+
+## 六、地形分割和导航逻辑
+
+### 6.1 生成 Nav2 地图
+
+导航启动时，将 `maps/a2_map.pcd` 投影成 Nav2 使用的：
+
+```text
+maps/a2_nav2_map.yaml
+maps/a2_nav2_map.pgm
+```
+
+默认每个栅格至少需要 4 个障碍点才标记为占用，用于过滤机器人腿和机身
+在行走过程中留下的稀疏点。必要时可调整：
 
 ```bash
-./scripts/test_ros2.sh
-./scripts/run_synthetic_validation.sh
-./scripts/run_headless_validation.sh 90
+ros2 launch a2_terrain_nav a2_terrain_navigation.launch.py \
+  minimum_points_per_cell:=N
 ```
 
-The synthetic validation does not require Gazebo; it verifies the exact JT128
-point fields, LiDAR/IMU rates, FAST-LIO initialization, and `odom -> base_link`
-output. The headless validation additionally runs the complete Gazebo trajectory
-and writes error metrics under `/tmp/a2_localization_eval`.
+### 6.2 GSeg3D 可通行判定
 
-The headless test defaults to a stationary convergence test. Select another
-path with the optional third argument, for example
-`./scripts/run_headless_validation.sh 90 /tmp/a2_eval figure8`.
+当前工程按用户要求将重力方向相对坡度 `<= 5°` 的区域视为可通行地面：
 
-The simulator reuses the official embedded front LiDAR housing; it does not add
-a separate visible cylinder. The geometry-free Hesai optical frame is placed at
-the official front LiDAR position, `xyz=[0.33767, 0, 0.08134] m`, with a Z-up
-orientation for the JT128 scan. Override it if a measured hardware calibration
-differs:
+- 坡度小于等于 5°：发布到 `/ground_segmentation/ground_points`；
+- 坡度大于 5°：发布到 `/ground_segmentation/obstacle_points`；
+- 局部代价地图只把非地面点和其膨胀区域作为障碍。
 
-```bash
-ros2 launch a2_localization_bringup a2_jt128_gazebo.launch.py \
-  lidar_xyz:="0.33767 0.0 0.08134" lidar_rpy:="0.0 0.0 0.0"
-```
+这里的 5° 是相对于 IMU 重力方向计算的，不是相对于雷达坐标系或机器人
+当前俯仰角计算的。当前逻辑只处理坡度，不包含台阶高度、粗糙度和足端落点
+规划。
 
-The launch defaults to `manual`, so it only moves when a `/cmd_vel` source is
-active. Scripted alternatives are `stationary`, `straight`, `square`, and
-`figure8`.
-Evaluation output defaults to `/tmp/a2_localization_eval`.
-
-## ROS interfaces
-
-| Topic | Type | Purpose |
-|---|---|---|
-| `/lidar_points` | `sensor_msgs/msg/PointCloud2` | FAST-LIO JT128 point cloud |
-| `/lidar_imu` | `sensor_msgs/msg/Imu` | FAST-LIO SI-unit IMU |
-| `/Odometry` | `nav_msgs/msg/Odometry` | Raw FAST-LIO IMU pose |
-| `/a2/odometry` | `nav_msgs/msg/Odometry` | Corrected `odom -> base_link` pose |
-| `/a2/localization` | `nav_msgs/msg/Odometry` | Relocalized `map -> base_link` pose |
-| `/a2/map` | `sensor_msgs/msg/PointCloud2` | Loaded localization map |
-| `/cloud_registered` | `sensor_msgs/msg/PointCloud2` | Registered world cloud |
-| `/a2/ground_truth/odom` | `nav_msgs/msg/Odometry` | Evaluation only |
-
-The Gazebo ground truth is never fed into FAST-LIO.
-
-Use `/a2/odometry` as the robot localization result. Its pose is
-`T_odom_base_link = T_odom_imu * inverse(T_base_link_imu)`. The launch file uses
-the same `lidar_xyz` and `lidar_rpy` values for both the URDF mount and this
-conversion, so changing the JT128 mount does not silently change the reported
-robot origin.
-
-During relocalization, use `/a2/localization` as the global robot pose. The TF
-chain is `map -> odom -> base_link`; `/a2/odometry` remains available as local
-continuous odometry.
-
-## Terrain-aware navigation
-
-After saving `maps/a2_map.pcd`, launch the complete relocalization and navigation
-stack with:
+### 6.3 启动完整导航
 
 ```bash
 source /opt/ros/humble/setup.bash
 source install/setup.bash
-ros2 launch a2_terrain_nav a2_terrain_navigation.launch.py
+ros2 launch a2_terrain_nav a2_terrain_navigation.launch.py \
+  auto_initialize:=true
 ```
 
-For the bundled simulation map, automatic initialization is repeatable:
+默认行为：
+
+- Gazebo 后台运行，RViz 自动启动；
+- 载入 PCD 并生成 Nav2 地图；
+- 启动 FAST-LIO、重定位、GSeg3D、Nav2 和安全门；
+- 使用 `gait_demo` 解析步态和机身辅助运动；
+- 目标坐标系统一为 `map`。
+
+需要 Gazebo 图形界面时：
 
 ```bash
-ros2 launch a2_terrain_nav a2_terrain_navigation.launch.py auto_initialize:=true
+ros2 launch a2_terrain_nav a2_terrain_navigation.launch.py \
+  auto_initialize:=true gui:=true
 ```
 
-Gazebo runs headlessly by default and RViz opens after about 10 seconds. This
-reserves the rendering capacity needed by the GPU LiDAR. Add `gui:=true` when a
-Gazebo window is required; the navigation default uses
-`horizontal_samples:=128`, which can be raised on a faster GPU.
+### 6.4 导航目标和速度链路
 
-This combined launch defaults simulation, localization, RViz, and Nav2 to
-`rmw_cyclonedds_cpp`; its runtime is installed by
-`scripts/install_dependencies.sh`. If an external ROS 2 process sends goals or
-inspects topics, run it with the same `RMW_IMPLEMENTATION` (sourcing this launch
-does not alter the parent terminal).
+RViz 的 **Nav2 Goal** 和网页端都发布：
 
-The launch automatically creates or refreshes `maps/a2_nav2_map.yaml` and
-`maps/a2_nav2_map.pgm` from the PCD. A cell must contain at least four obstacle
-returns before it is marked occupied; this rejects sparse robot-body ghosts
-left along the mapping trajectory. Override it only when necessary with
-`minimum_points_per_cell:=N`. In RViz:
+```text
+/goal_pose  geometry_msgs/msg/PoseStamped
+```
 
-1. keep the robot stationary until FAST-LIO initializes;
-2. use **2D Pose Estimate** to initialize `map -> odom`;
-3. wait for `/a2/relocalization/status` to report localization success;
-4. use **Nav2 Goal** to send a navigation target.
+消息的 `header.frame_id` 必须是 `map`。Nav2 处理目标后依次经过：
 
-Nav2 publishes `/cmd_vel`; the existing A2 gait controller consumes it. The
-global costmap uses the generated static map. The local costmap deliberately
-does not consume the raw JT128 cloud through ObstacleLayer/VoxelLayer: GSeg3D
-first separates ground and non-ground points, and Ground Consistency evaluates
-non-ground height relative to nearby ground before inflation.
+```text
+/cmd_vel_nav
+    -> velocity_smoother
+/cmd_vel
+    -> localization_safety_monitor
+/a2/safe_cmd_vel
+    -> gait_controller
+    -> Gazebo
+```
 
-The navigation launch uses a dedicated 2 Hz scan-to-map correction profile so
-the global `map -> base_link` feedback does not lag the assisted gait. The
-robot's final global base pose is available on `/a2/localization` and through
-the TF transform `map -> base_link`.
+如果定位状态为 `LOST`、`INITIALIZING` 或里程计异常，安全门会截断速度并
+停车。这是导航目标已经发送但机器人不动时首先要检查的环节。
 
-Useful diagnostics:
+当前 `gait_demo` 是用于仿真和定位验证的解析步态，不是 Unitree 专有的
+Sport 控制器，也不是强化学习策略。`locomotion_mode:=dynamic` 只用于接触
+动力学实验，不代表已经具备真实 A2 的稳定步态控制能力。
+
+## 七、网页控制台
+
+### 7.1 启动网页
 
 ```bash
-ros2 topic hz /ground_segmentation/ground_points
-ros2 topic hz /ground_segmentation/obstacle_points
+bash scripts/setup_web.sh
+bash scripts/run_web.sh
+```
+
+浏览器访问：
+
+```text
+http://127.0.0.1:8080
+```
+
+默认账号为 `admin`，默认密码为 `123456`（首次使用时以页面提示为准）。
+
+网页可以完成：
+
+- 启动和停止建图；
+- 通过 `/cmd_vel` 手动控制机器人；
+- 结束建图并保存 PCD；
+- 启动定位和导航；
+- 设置 `/initialpose`；
+- 发送 `/goal_pose` 导航目标；
+- 显示地图、TF、轨迹、机器人位姿和点云；
+- 保存和管理网页航点。
+
+网页运行时生成的地图和配置位于 `maps/web/`、`web/config/`，已加入
+`.gitignore`，不会污染源码提交。
+
+如果出现 `address already in use`，表示已有网页服务占用 8080 端口：
+
+```bash
+ss -ltnp 'sport = :8080'
+pkill -f 'uvicorn robot_server'
+```
+
+也可以使用其他端口：
+
+```bash
+A2_WEB_PORT=8081 bash scripts/run_web.sh
+```
+
+网页和仿真必须使用同一个 ROS 2 环境。系统没有 `python3-venv` 时，安装
+脚本会把 Python 3.10 兼容依赖放在 `web/.python-deps/`，不会使用 conda
+Python 3.13 加载 ROS 2 的 `rclpy`。
+
+## 八、常用 ROS 2 接口
+
+| 话题/服务 | 类型 | 用途 |
+|---|---|---|
+| `/lidar_points` | `sensor_msgs/msg/PointCloud2` | JT128 点云输入 |
+| `/lidar_imu` | `sensor_msgs/msg/Imu` | FAST-LIO IMU 输入 |
+| `/Odometry` | `nav_msgs/msg/Odometry` | FAST-LIO 原始输出 |
+| `/a2/odometry` | `nav_msgs/msg/Odometry` | 局部 `odom -> base_link` |
+| `/a2/localization` | `nav_msgs/msg/Odometry` | 全局 `map -> base_link` |
+| `/a2/map` | `sensor_msgs/msg/PointCloud2` | 已加载的 PCD 地图 |
+| `/cloud_registered` | `sensor_msgs/msg/PointCloud2` | FAST-LIO 配准点云 |
+| `/initialpose` | `geometry_msgs/msg/PoseWithCovarianceStamped` | 初始全局位姿 |
+| `/goal_pose` | `geometry_msgs/msg/PoseStamped` | Nav2 导航目标 |
+| `/cmd_vel` | `geometry_msgs/msg/Twist` | 手动或 Nav2 速度 |
+| `/cmd_vel_nav` | `geometry_msgs/msg/Twist` | Nav2 控制器输出 |
+| `/a2/safe_cmd_vel` | `geometry_msgs/msg/Twist` | 安全门后的速度 |
+| `/a2/relocalization/status` | `std_msgs/msg/String` | 重定位状态 |
+| `/a2/odometry/status` | `std_msgs/msg/String` | 里程计健康状态 |
+| `/a2/relocalize` | 服务 | 使用最近初值重试重定位 |
+| `/a2/relocalization/reset` | 服务 | 清除全局定位并重新初始化 |
+| `/map_save` | `std_srvs/srv/Trigger` | 中途保存地图快照 |
+
+查看最终机器人全局位姿：
+
+```bash
+ros2 topic echo /a2/localization
+ros2 run tf2_ros tf2_echo map base_link
+```
+
+## 九、常用诊断命令
+
+```bash
+# 传感器频率
+ros2 topic hz /lidar_points
+ros2 topic hz /lidar_imu
+
+# FAST-LIO 和重定位状态
+ros2 topic echo /a2/odometry/status
 ros2 topic echo /a2/relocalization/status
+
+# TF 和 Nav2 状态
+ros2 run tf2_tools view_frames
 ros2 lifecycle get /controller_server
 ros2 action list | grep navigate
+
+# 地面/障碍分割频率
+ros2 topic hz /ground_segmentation/ground_points
+ros2 topic hz /ground_segmentation/obstacle_points
+
+# 检查速度链路
+ros2 topic echo /cmd_vel_nav
+ros2 topic echo /a2/safe_cmd_vel
 ```
 
-The bundled `gseg3d_a2.yaml` uses a nominal `lidar_to_ground: -0.46` for the
-Gazebo gait demo. Measure and replace this value before using the stack on the
-real robot. Ground classification is not the same as traversability; slope,
-roughness, step and foothold cost layers remain a later upgrade.
+常见现象和判断：
 
-For the current navigation profile, GSeg3D classifies only terrain below a
-5-degree gravity-relative slope as traversable.  Terrain at or above 5 degrees
-is sent to the local obstacle layer.
+1. **有目标但不动**：先检查 `/a2/relocalization/status` 是否为
+   `LOCALIZED`、`/a2/odometry/status` 是否为 `OK`，再检查
+   `/a2/safe_cmd_vel` 是否一直为零。
+2. **RViz 报 `frame does not exist`**：检查 `map -> odom -> base_link`
+   是否完整，确保定位模式已经启动并且 FAST-LIO 已输出里程计。
+3. **机器人走过的位置出现很多雷达点**：这是雷达看到机身、腿或稀疏动态
+   点造成的。PCD 投影默认要求每个栅格至少 4 个点，GSeg3D 和 Ground
+   Consistency 还会进一步过滤地面和机器人本体点。
+4. **导航启动很卡**：降低 JT128 的 `horizontal_samples`，导航默认是
+   128；只有 GPU 余量充足时才提高该值。
+5. **网页无法启动**：确认只启动了一个 `uvicorn`，并且使用
+   `/usr/bin/python3.10` 对应的 ROS 2 Humble 环境。
 
-## Important real-robot boundary
+## 十、仿真与真实机器人边界
 
-The simulated LiDAR and IMU are collocated, so FAST-LIO uses identity extrinsics.
-For hardware, replace the mount transform and FAST-LIO extrinsics with measured
-or calibrated values and verify Hesai timestamp and IMU gyro units.
+仿真中 JT128 和 IMU 的安装位姿由 URDF 和启动参数共同定义，默认安装位置：
 
-The default Gazebo horizontal resolution is 256 samples per ring so that the
-128-line sensor can sustain its 10 Hz update rate on software rendering. Raise
-`horizontal_samples` when GPU headroom permits it.
+```text
+lidar_xyz = 0.33767 0.0 0.08134
+lidar_rpy = 0.0 0.0 0.0
+```
+
+如果实物安装位置不同，需要同时修改 URDF 外参和 FAST-LIO 配置，并确认
+Hesai 时间戳、IMU 角速度单位和雷达坐标轴方向。仿真中的
+`gait_demo` 只用于算法联调；真实 A2 运行前还需要接入真实底盘控制器、
+实测外参和经过验证的步态策略。
+
+定位和导航实现参考了
+[FAST_LIO_LOCALIZATION](https://github.com/HViktorTsoi/FAST_LIO_LOCALIZATION)
+的低频全局匹配、高频 FAST-LIO 里程计和全局 TF 融合思路。

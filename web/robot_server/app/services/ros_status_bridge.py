@@ -416,26 +416,36 @@ class RosStatusBridge:
 
     def publish_goal(self, x, y, yaw):
         values = [float(x), float(y), float(yaw)]
-        if self._goal_action_client is None or not all(math.isfinite(value) for value in values):
-            return {"ok": False, "message": "Nav2 action client is not ready or pose is invalid"}
-        if not self._goal_action_client.server_is_ready():
-            return {"ok": False, "message": "Nav2 NavigateToPose action server is not ready"}
+        if self._goal_pub is None or not all(math.isfinite(value) for value in values):
+            return {"ok": False, "message": "Nav2 goal publisher is not ready or pose is invalid"}
         try:
-            from nav2_msgs.action import NavigateToPose
-            goal = NavigateToPose.Goal()
-            goal.pose.header.frame_id = "map"
-            goal.pose.header.stamp = self._node.get_clock().now().to_msg()
-            goal.pose.pose.position.x, goal.pose.pose.position.y = values[:2]
-            goal.pose.pose.orientation.z = math.sin(values[2] / 2.0)
-            goal.pose.pose.orientation.w = math.cos(values[2] / 2.0)
+            # The A2 Nav2 bringup exposes the same goal entry point used by
+            # RViz: publishing PoseStamped on /goal_pose.  Sending only an
+            # Action goal here can leave the action handshake pending in the
+            # simulator, so do not submit a second (duplicate) goal through
+            # NavigateToPose.
+            from geometry_msgs.msg import PoseStamped
+            message = PoseStamped()
+            message.header.frame_id = "map"
+            message.header.stamp = self._node.get_clock().now().to_msg()
+            message.pose.position.x, message.pose.position.y = values[:2]
+            message.pose.orientation.z = math.sin(values[2] / 2.0)
+            message.pose.orientation.w = math.cos(values[2] / 2.0)
             with self._scan_lock:
                 self._last_goal_target = list(values)
-                self._goal_metrics = {"active": True, "distance_remaining": None, "target": list(self._last_goal_target), "seen": time.monotonic()}
-            future = self._goal_action_client.send_goal_async(
-                goal, feedback_callback=self._goal_feedback_callback
-            )
-            future.add_done_callback(self._goal_response_callback)
-            return {"ok": True, "message": "navigation goal submitted"}
+                self._goal_metrics = {
+                    "active": True,
+                    "distance_remaining": None,
+                    "target": list(self._last_goal_target),
+                    "seen": time.monotonic(),
+                }
+            self._goal_pub.publish(message)
+            # This bridge also subscribes to /goal_pose for telemetry, so
+            # exclude that local subscription from the readiness check.
+            subscriber_count = max(0, self._goal_pub.get_subscription_count() - 1)
+            if subscriber_count <= 0:
+                return {"ok": False, "message": "/goal_pose has no Nav2 subscriber"}
+            return {"ok": True, "message": "navigation goal published", "subscriber_count": subscriber_count}
         except Exception as exc:
             return {"ok": False, "message": f"failed to send navigation goal: {exc}"}
 

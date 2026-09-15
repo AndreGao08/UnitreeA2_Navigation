@@ -19,7 +19,8 @@ bash scripts/run_web.sh
 
 - 启动/停止定位导航：`a2_terrain_nav/a2_terrain_navigation.launch.py`。
 - 启动建图：`a2_localization_bringup/a2_jt128_gazebo.launch.py operation_mode:=mapping`。
-- 网页速度控制发布 `/cmd_vel`，导航目标发送 Nav2 `navigate_to_pose` action。
+- 网页速度控制发布 `/cmd_vel`，导航目标发布到 Nav2 当前使用的 `/goal_pose`
+  （`geometry_msgs/msg/PoseStamped`，坐标系为 `map`）。
 - 网页航点队列由后端直接按顺序调用 Nav2，不依赖原项目的 HYY waypoint/tcp 节点。
 - 默认显示 `/cloud_registered`，可切换 `/lidar_points`、GSeg3D 地面/障碍点云和 `/Laser_map`。
 - TF、机器人位姿统一使用 `map/odom -> base_link`，不再使用原项目的 `base_link_2d`。
