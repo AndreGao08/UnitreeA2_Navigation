@@ -1,0 +1,7 @@
+<!-- Nav2 uses its default NavigateToPose behavior tree.  This file provides
+     the frontend with a stable, selectable A2 behavior-tree preset. -->
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <AlwaysSuccess/>
+  </BehaviorTree>
+</root>

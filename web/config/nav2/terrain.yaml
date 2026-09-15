@@ -1,0 +1,5 @@
+# The runtime launch consumes the maintained Nav2 parameters directly from
+# src/a2_terrain_nav/config/nav2_params.yaml.  This file is the web UI preset
+# identity and intentionally contains no duplicate navigation parameters.
+profile: a2_terrain_nav
+source: src/a2_terrain_nav/config/nav2_params.yaml

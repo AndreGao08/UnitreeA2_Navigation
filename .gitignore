@@ -5,6 +5,13 @@
 **/__pycache__/
 *.pyc
 *.pcd
+/maps/web/
+/web/config/auth_config.json
+/web/config_backups/
+/.venv/
+/web/.python-deps/
+frames_*.gv
+frames_*.pdf
 
 # Runtime and editor artifacts
 .vscode/

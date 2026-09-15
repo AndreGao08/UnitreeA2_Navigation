@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "maps": {
+    "default": {
+      "initial_pose": {
+        "x": 0.0,
+        "y": 0.0,
+        "yaw": 0.0
+      },
+      "waypoints": []
+    }
+  }
+}

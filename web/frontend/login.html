@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>登录 · HYY导航控制软件</title>
+    <link rel="stylesheet" href="/static/login.css">
+  </head>
+  <body>
+    <main class="login-card">
+      <div class="login-mark">H</div>
+      <h1>HYY导航控制软件</h1>
+      <p>请输入管理账户进入控制系统</p>
+      <form id="loginForm">
+        <label>账户<input name="username" autocomplete="username" required autofocus></label>
+        <label>密码<input name="password" type="password" autocomplete="current-password" required></label>
+        <button type="submit">登录</button>
+      </form>
+      <div id="loginError" role="alert"></div>
+    </main>
+    <script src="/static/login.js"></script>
+  </body>
+</html>

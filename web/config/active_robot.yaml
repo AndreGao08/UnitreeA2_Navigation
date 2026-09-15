@@ -1,0 +1,5 @@
+active_profile: unitree_a2
+nav2_presets:
+  unitree_a2: terrain
+behavior_tree_presets:
+  unitree_a2: navigate_to_pose

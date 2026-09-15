@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HYY导航控制软件</title>
+    <link rel="stylesheet" href="/static/styles.css?v=20260828-49">
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="mark">H</div>
+          <div>
+            <h1>HYY导航控制软件</h1>
+            <span>Navigation Control</span>
+          </div>
+        </div>
+        <nav class="nav">
+          <button class="nav-item active" data-view="overview">控制面板</button>
+          <button class="nav-item" data-view="maps">地图管理</button>
+          <button class="nav-item" data-view="waypoints">存点管理</button>
+          <button class="nav-item" data-view="texts">文本管理</button>
+          <button class="nav-item" data-view="advanced">参数页面</button>
+          <button class="nav-item" data-view="task">任务</button>
+        </nav>
+        <div class="api-box">
+          <span>API</span>
+          <strong id="apiBaseText"></strong>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="toolbar">
+          <div>
+            <h2 id="viewTitle">控制面板</h2>
+            <p id="viewSubtitle">机器人状态、导航控制和当前地图</p>
+          </div>
+          <div class="toolbar-actions">
+            <button id="refreshBtn">刷新</button>
+            <button id="logoutBtn">退出登录</button>
+          </div>
+        </header>
+
+        <section class="view active" id="overview">
+          <section class="system-status-bar panel">
+            <div class="status-bar-head">
+              <h3>系统状态</h3>
+              <span id="message" class="status-message">系统已就绪</span>
+              <span class="status-monitor">自动监控</span>
+            </div>
+            <div class="metric-grid" id="statusCards"></div>
+          </section>
+          <div class="dashboard-layout">
+            <aside class="layer-rail panel">
+              <div class="panel-head"><h3>显示图层</h3><span>画布叠加</span></div>
+              <div class="layer-options">
+                <div id="pointcloudWidgets" class="pointcloud-widgets"></div>
+                <div class="builtin-widgets">
+                  <section class="pointcloud-widget builtin-widget"><div class="builtin-widget-head"><input id="mapFrameVisible" type="checkbox" checked><span class="component-title"><strong>地图坐标系</strong><small class="component-frequency" id="mapFrameFrequency">静态</small></span><button data-builtin-toggle="mapFrameSettings">▸</button></div><div id="mapFrameSettings" class="builtin-widget-body" hidden><div class="cloud-appearance"><label>长度<input id="mapFrameLength" type="number" min="0.2" max="10" step="0.1" value="0.5"></label><label>粗细<input id="mapFrameThickness" type="number" min="1" max="12" step="1" value="4"></label></div></div></section>
+                  <section class="pointcloud-widget builtin-widget"><div class="builtin-widget-head"><input id="robotFrameVisible" type="checkbox" checked><span class="component-title"><strong>机器人坐标系</strong><small class="component-frequency" id="robotFrameFrequency">0 Hz</small></span><button data-builtin-toggle="robotFrameSettings">▸</button></div><div id="robotFrameSettings" class="builtin-widget-body" hidden><div class="cloud-appearance"><label>长度<input id="robotFrameLength" type="number" min="0.1" max="5" step="0.1" value="0.5"></label><label>粗细<input id="robotFrameThickness" type="number" min="1" max="12" step="1" value="4"></label></div></div></section>
+                  <section class="pointcloud-widget builtin-widget"><div class="builtin-widget-head"><input id="localCostmapVisible" type="checkbox"><span class="component-title"><strong>局部代价地图</strong><small class="component-frequency" id="localCostmapFrequency">0 Hz</small></span><button data-builtin-toggle="localCostmapSettings">▸</button></div><div id="localCostmapSettings" class="builtin-widget-body" hidden>系统内置图层，无可修改属性。</div></section>
+                  <section class="pointcloud-widget builtin-widget"><div class="builtin-widget-head"><input id="globalCostmapVisible" type="checkbox"><span class="component-title"><strong>全局代价地图</strong><small class="component-frequency" id="globalCostmapFrequency">0 Hz</small></span><button data-builtin-toggle="globalCostmapSettings">▸</button></div><div id="globalCostmapSettings" class="builtin-widget-body" hidden>系统内置图层，无可修改属性。</div></section>
+                </div>
+              </div>
+              <button id="addPointcloudWidgetBtn" class="add-layer-button" title="添加点云组件" aria-label="添加点云组件">＋</button>
+              <div id="addLayerMenu" class="add-layer-menu" hidden>
+                <strong>选择组件类型</strong>
+                <button type="button" data-add-layer="pointcloud"><span>●</span> 点云组件</button>
+                <button type="button" data-add-layer="path"><span class="path-symbol">━</span> 目标路径组件</button>
+                <button type="button" data-add-layer="trajectory"><span class="trajectory-symbol">━</span> 运动路径组件</button>
+                <button type="button" data-add-layer="waypoints"><span class="waypoint-symbol">●</span> 点位组件</button>
+                <button type="button" data-add-layer="tf"><span class="path-symbol">⊥</span> TF 坐标系</button>
+              </div>
+            </aside>
+            <article class="panel map-visual scene-panel">
+              <div class="panel-head">
+                <h3>地图与三维点云</h3>
+              </div>
+              <div class="map-tools">
+                <button id="panTool" class="tool active">查看</button>
+                <button id="goalTool" class="tool">导航目标</button>
+                <button id="initialPoseTool" class="tool">初始位姿</button>
+                <button id="fitMapBtn">适应地图</button>
+                <button id="topViewBtn">正上方</button>
+                <span id="mapHint">左键旋转，右键或 Shift+左键平移，滚轮缩放</span>
+              </div>
+              <div class="canvas-wrap scene-wrap">
+                <canvas id="poseCanvas" width="960" height="560"></canvas>
+                <div id="poseText" class="pose-overlay">
+                  <div><span>当前位姿</span><strong id="canvasPoseValue">等待 TF</strong></div>
+                  <div><span>目标速度</span><strong id="canvasSpeedValue">X=0.00&nbsp; Y=0.00&nbsp; W=0.00</strong></div>
+                  <div><span>距目标点</span><strong id="canvasGoalDistanceValue">X=--&nbsp; Y=--&nbsp; W=--&nbsp; 直线=--&nbsp; 路径=--</strong></div>
+                </div>
+              </div>
+            </article>
+            <aside class="control-rail panel">
+              <div class="panel-head">
+                <h3>系统控制</h3><span>自动监控</span>
+              </div>
+              <div class="main-actions">
+                <button id="startBtn" class="primary">启动导航系统</button>
+                <button id="stopBtn">停止导航系统</button>
+                <button id="restartBtn">重启导航系统</button>
+                <button id="stopMotionBtn" class="danger">停止运动</button>
+              </div>
+              <div id="startupSteps" class="step-grid"></div>
+              <div class="remote-control">
+                <div class="remote-control-head">
+                  <h4>遥控控制</h4>
+                  <span>按住运动，松开停止</span>
+                </div>
+                <div class="remote-ring" id="remoteRing">
+                  <button class="remote-outer remote-left" data-velocity="rotate-left" aria-label="左转">↶</button>
+                  <button class="remote-outer remote-right" data-velocity="rotate-right" aria-label="右转">↷</button>
+                  <div class="remote-inner">
+                    <button class="remote-direction remote-forward" data-velocity="forward" aria-label="前进">↑</button>
+                    <button class="remote-direction remote-strafe-left" data-velocity="left" aria-label="左移">←</button>
+                    <button class="remote-direction remote-strafe-right" data-velocity="right" aria-label="右移">→</button>
+                    <button class="remote-direction remote-backward" data-velocity="backward" aria-label="后退">↓</button>
+                  </div>
+                </div>
+                <label class="remote-speed-scale">
+                  <span>速度缩放</span>
+                  <input type="range" min="0.75" max="1.5" step="0.05" value="1" data-speed-scale>
+                  <output data-speed-scale-value>1.00×</output>
+                </label>
+              </div>
+            </aside>
+          </div>
+          <section class="host-status-bar panel">
+            <div class="status-bar-head">
+              <h3>主机状态</h3>
+              <span>每 2 秒更新</span>
+            </div>
+            <div class="host-metric-grid" id="hostStatusCards"></div>
+          </section>
+        </section>
+
+        <section class="view" id="task">
+          <article class="panel">
+            <div class="task-tabs"><button class="active">导览任务</button></div>
+            <div class="panel-head"><h3>导览任务编排</h3><span id="inspectionStatus">未运行</span></div>
+            <div class="inspection-builder">
+              <div class="inspection-column">
+                <div class="inspection-column-head"><h4>已存点位</h4><button id="insertSelectedWaypointBtn" class="primary">插入选中点位</button></div>
+                <span>选择一个点位后统一插入</span>
+                <div id="inspectionWaypointSource" class="inspection-list"></div>
+              </div>
+              <div class="inspection-column">
+                <div class="inspection-column-head"><h4>文本列表</h4><button id="insertSelectedTextBtn" class="primary">插入选中文本</button></div>
+                <span>选择文本块后插入导览顺序</span>
+                <div id="guideTextList" class="inspection-list"></div>
+              </div>
+              <div class="inspection-column inspection-logic-column">
+                <h4>导览顺序</h4>
+                <div class="form-row">
+                  <input id="inspectionWaitSeconds" type="number" min="0" max="86400" step="0.1" value="5" placeholder="等待秒数">
+                  <button id="insertInspectionWaitBtn">插入等待块</button>
+                </div>
+                <div id="inspectionSequence" class="inspection-list"></div>
+              </div>
+            </div>
+            <div class="form-row inspection-actions">
+              <input id="inspectionCycles" type="number" min="1" max="100" value="1" placeholder="循环次数">
+              <button id="startInspectionBtn" class="primary">开始导览</button>
+              <button id="cancelInspectionBtn" class="danger">停止导览</button>
+              <button id="clearInspectionBtn">清空编排</button>
+            </div>
+          </article>
+        </section>
+
+        <section class="view" id="texts">
+          <article class="panel">
+            <div class="panel-head"><h3>文本管理</h3><span>建立和维护常用导览播报内容</span></div>
+            <div class="guide-text-editor">
+              <div class="form-row">
+                <textarea id="guideTextContent" maxlength="1000" rows="4" placeholder="输入导览播报文本"></textarea>
+                <input id="guideTextNote" maxlength="200" placeholder="备注，例如：一楼展厅欢迎词">
+                <button id="saveGuideTextBtn" class="primary">新增文本块</button>
+                <button id="cancelGuideTextEditBtn" hidden>取消编辑</button>
+              </div>
+            </div>
+            <div id="guideTextManageList" class="inspection-list text-management-list"></div>
+          </article>
+        </section>
+
+        <section class="view" id="advanced">
+          <article class="panel runtime-config-panel">
+            <div class="panel-head"><h3>运行配置</h3><span>停止导航系统和建图后方可应用</span></div>
+            <div class="runtime-config-row">
+              <label>机器人类型<select id="robotProfileSelect"></select></label>
+              <label>Nav2 参数文件<select id="nav2PresetSelect"></select></label>
+              <label>行为树<select id="behaviorTreeSelect"></select></label>
+              <button id="applyConfigurationBtn" class="primary">应用配置</button>
+            </div>
+            <small id="robotProfileDescription">正在读取机器人配置…</small>
+          </article>
+        </section>
+
+        <section class="view" id="maps">
+          <input id="mapUploadFile" type="file" accept=".pgm,image/x-portable-graymap" hidden>
+          <article class="panel mapping-panel">
+            <div class="panel-head"><h3>建图与存图</h3><span>建图与导航模式互斥，地图统一保存到地图管理目录</span></div>
+            <div class="form-row">
+              <input id="mappingName" placeholder="新地图名称，例如 floor2">
+              <button id="mappingStartBtn" class="primary">开始建图</button>
+              <button id="mappingSaveBtn">完成并保存地图</button>
+              <button id="mappingStopBtn" class="danger">放弃并停止</button>
+            </div>
+          </article>
+          <article class="panel">
+            <div class="panel-head">
+              <h3>地图列表</h3>
+              <span id="mapDirectory"></span>
+            </div>
+            <div id="mapList" class="tile-list"></div>
+          </article>
+        </section>
+
+        <section class="view" id="waypoints">
+          <div class="waypoint-layout">
+            <article class="panel waypoint-management-panel">
+              <div class="panel-head">
+                <h3>点位管理</h3>
+                <span>config/way_point/navigation_data.json（按地图分区）</span>
+              </div>
+              <div class="form-row">
+                <input id="currentWaypointNote" maxlength="200" placeholder="语义备注，例如 充电点">
+                <button type="button" id="saveCurrentWaypointBtn" class="primary">记录当前位置</button>
+                <span id="recordWaypointHint">需先完成定位</span>
+              </div>
+              <div class="panel-head"><h3>手动补充点位</h3><span>用于输入已知地图坐标</span></div>
+              <form id="waypointForm" class="form-row">
+                <input name="x" type="number" step="0.01" placeholder="x">
+                <input name="y" type="number" step="0.01" placeholder="y">
+                <input name="yaw" type="number" step="0.0001" placeholder="yaw">
+                <input name="note" maxlength="200" placeholder="语义备注（可选）">
+                <button type="submit">手动添加</button>
+              </form>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>#</th><th>X</th><th>Y</th><th>Yaw</th><th>备注 / 语义</th><th>操作</th></tr>
+                  </thead>
+                  <tbody id="waypointTable"></tbody>
+                </table>
+              </div>
+            </article>
+            <aside class="waypoint-side-rail">
+              <article class="panel waypoint-control-panel">
+                <div class="panel-head"><h3>机器人控制</h3><span>按住运动，松开停止</span></div>
+                <div class="remote-control">
+                  <div class="remote-ring">
+                    <button class="remote-outer remote-left" data-velocity="rotate-left" aria-label="左转">↶</button>
+                    <button class="remote-outer remote-right" data-velocity="rotate-right" aria-label="右转">↷</button>
+                    <div class="remote-inner">
+                      <button class="remote-direction remote-forward" data-velocity="forward" aria-label="前进">↑</button>
+                      <button class="remote-direction remote-strafe-left" data-velocity="left" aria-label="左移">←</button>
+                      <button class="remote-direction remote-strafe-right" data-velocity="right" aria-label="右移">→</button>
+                      <button class="remote-direction remote-backward" data-velocity="backward" aria-label="后退">↓</button>
+                    </div>
+                  </div>
+                  <label class="remote-speed-scale">
+                    <span>速度缩放</span>
+                    <input type="range" min="0.75" max="1.5" step="0.05" value="1" data-speed-scale>
+                    <output data-speed-scale-value>1.00×</output>
+                  </label>
+                  <span data-remote-hint>等待驱动启动</span>
+                </div>
+              </article>
+              <article class="panel waypoint-test-panel">
+                <div class="panel-head"><h3>往返测试</h3></div>
+                <div class="waypoint-test-form">
+                  <input id="testWaypointIndices" placeholder="点位顺序，例如 1,2,3">
+                  <input id="testCycles" type="number" min="1" max="100" value="1" placeholder="循环次数">
+                  <button id="startWaypointTestBtn" class="primary">开始测试</button>
+                  <button id="cancelWaypointTestBtn" class="danger">停止测试</button>
+                </div>
+              </article>
+            </aside>
+          </div>
+        </section>
+
+      </main>
+    </div>
+    <script src="/static/scene3d.js?v=20260901-23"></script>
+    <script src="/static/app.js?v=20260903-109"></script>
+  </body>
+</html>
