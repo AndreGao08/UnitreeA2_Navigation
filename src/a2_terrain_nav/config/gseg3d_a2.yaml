@@ -23,13 +23,15 @@ ground_segmentation:
     cellSizeY: 0.50
     cellSizeZ: 5.0
     cellSizeZPhase2: 0.50
-    # The bundled ramp is 0.18 rad = 10.31 degrees.  Accept it with useful
-    # sensor/noise margin, while retaining steeper faces as obstacles.
-    slopeThresholdDegrees: 15.0
+    # Only terrain within 5 degrees of gravity-level is traversable.  The
+    # bundled 10.3 degree ramp is therefore intentionally classified as an
+    # obstacle and kept out of the Nav2 local controller's free space.
+    slopeThresholdDegrees: 5.0
     groundInlierThreshold: 0.10
     centroidSearchRadius: 2.5
     use_imu_orientation: true
-    # A 15 degree surface changes by 0.134 m across one 0.50 m cell.
-    # This admits the ramp but still breaks expansion across a 0.20 m step.
-    maxGroundHeightDeviation: 0.14
+    # A 5 degree surface changes by about 0.044 m across one 0.50 m cell.
+    # Keep a small measurement margin while preventing phase-II expansion
+    # across steeper surfaces or a 0.20 m step.
+    maxGroundHeightDeviation: 0.05
     show_benchmark: false

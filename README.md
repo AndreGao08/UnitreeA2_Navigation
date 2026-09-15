@@ -247,6 +247,10 @@ Gazebo gait demo. Measure and replace this value before using the stack on the
 real robot. Ground classification is not the same as traversability; slope,
 roughness, step and foothold cost layers remain a later upgrade.
 
+For the current navigation profile, GSeg3D classifies only terrain below a
+5-degree gravity-relative slope as traversable.  Terrain at or above 5 degrees
+is sent to the local obstacle layer.
+
 ## Important real-robot boundary
 
 The simulated LiDAR and IMU are collocated, so FAST-LIO uses identity extrinsics.

@@ -46,6 +46,12 @@ The global planner uses `/map`; the local controller uses
 `/ground_segmentation/ground_points` and
 `/ground_segmentation/obstacle_points` through Ground Consistency.
 
+The bundled GSeg3D profile treats only surfaces below the configured
+`slopeThresholdDegrees: 5.0` limit as traversable ground.  It uses the IMU
+gravity direction, so body pitch does not redefine a steep ramp as level
+ground.  Surfaces at or above the limit are published on
+`/ground_segmentation/obstacle_points` and become local-costmap obstacles.
+
 The combined launch regenerates `maps/a2_nav2_map.yaml` and its PGM image when
 `maps/a2_map.pcd` is newer. To convert explicitly:
 

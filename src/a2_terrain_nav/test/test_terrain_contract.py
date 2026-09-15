@@ -39,13 +39,14 @@ def test_ramp_entry_is_flush_with_floor(world_name):
     assert ramp_low_top == pytest.approx(floor_top, abs=1.0e-3)
 
 
-def test_gseg_contract_accepts_bundled_ramp_but_rejects_step():
+def test_gseg_contract_limits_traversable_ground_to_five_degrees():
     config = (PROJECT_ROOT / 'src' / 'a2_terrain_nav' / 'config' /
               'gseg3d_a2.yaml').read_text(encoding='utf-8')
     slope_limit = float(re.search(r'slopeThresholdDegrees:\s*([0-9.]+)', config).group(1))
     height_limit = float(re.search(r'maxGroundHeightDeviation:\s*([0-9.]+)', config).group(1))
-    assert math.degrees(0.18) < slope_limit
-    assert 0.5 * math.tan(0.18) < height_limit < 0.20
+    assert slope_limit == pytest.approx(5.0)
+    assert 0.5 * math.tan(math.radians(slope_limit)) < height_limit < 0.20
+    assert slope_limit < math.degrees(0.18)
 
 
 def test_navigation_requires_both_localizers_to_be_healthy():
