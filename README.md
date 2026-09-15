@@ -75,7 +75,9 @@ source install/setup.bash
 ```
 
 `build_ros2.sh` 只构建三个模块中明确列出的 ROS 包，避免把参考仓库误当成
-运行包。编译完成后加载环境：
+运行包。修改后的 `FAST_LIO_Hesai` 和作为实现参考的
+`FAST_LIO_LOCALIZATION` 已直接包含在仓库中，不需要额外下载或初始化子模块。
+编译完成后加载环境：
 
 ```bash
 source install/setup.bash

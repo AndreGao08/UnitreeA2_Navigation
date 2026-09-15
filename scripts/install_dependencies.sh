@@ -8,7 +8,6 @@ sudo apt-get install -y \
   ros-humble-robot-state-publisher \
   ros-humble-joint-state-publisher \
   ros-humble-rviz2 \
-  ros-humble-rmw-fastrtps-cpp \
   ros-humble-rmw-cyclonedds-cpp \
   ros-humble-pcl-ros \
   ros-humble-sensor-msgs-py \

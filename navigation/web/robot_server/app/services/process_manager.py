@@ -19,13 +19,13 @@ class ProcessManager:
             "ros2 launch a2_terrain_nav a2_terrain_navigation.launch.py "
             "map_pcd:={map_pcd} map_yaml:={map_yaml} "
             "auto_initialize:={auto_initialize} locomotion_mode:=gait_demo "
-            "rmw_implementation:=rmw_fastrtps_cpp gui:={gui} rviz:={rviz}",
+            "rmw_implementation:=rmw_cyclonedds_cpp gui:={gui} rviz:={rviz}",
         ),
         "mapping": (
             "A2 建图",
             "ros2 launch a2_localization_bringup a2_jt128_gazebo.launch.py "
             "operation_mode:=mapping map_path:={map_pcd} trajectory:=manual "
-            "locomotion_mode:=gait_demo rmw_implementation:=rmw_fastrtps_cpp "
+            "locomotion_mode:=gait_demo rmw_implementation:=rmw_cyclonedds_cpp "
             "gui:={gui} rviz:={rviz}",
         ),
         "map_save": (

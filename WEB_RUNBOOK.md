@@ -54,6 +54,8 @@ bash scripts/setup_web.sh
 - `fetch_navigation_dependencies.sh` 会下载固定版本的 GSeg3D 和 Nav2 地形插件；
 - `build_ros2.sh` 编译 `localization/`、`navigation/`、`driver/` 三个模块；
 - `setup_web.sh` 创建网页 Python 环境并安装依赖。
+- 修改后的 `FAST_LIO_Hesai`（含 `ikd-Tree`）及参考用的
+  `FAST_LIO_LOCALIZATION` 已随主仓库提供，不需要额外下载。
 
 编译成功后可确认关键包存在：
 
@@ -133,7 +135,7 @@ ros2 launch a2_terrain_nav a2_terrain_navigation.launch.py \
   map_yaml:=<当前地图 YAML> \
   auto_initialize:=true \
   locomotion_mode:=gait_demo \
-  rmw_implementation:=rmw_fastrtps_cpp \
+  rmw_implementation:=rmw_cyclonedds_cpp \
   gui:=false rviz:=false
 ```
 
@@ -299,7 +301,7 @@ cd /home/gao/Documents/UnitreeA2_Navigation
 source /opt/ros/humble/setup.bash
 source install/setup.bash
 export ROS_DOMAIN_ID=0
-export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 ```
 
 然后检查：
@@ -331,7 +333,7 @@ ros2 topic echo /a2/safe_cmd_vel
 
 ```text
 ROS_DOMAIN_ID=0
-RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 ```
 
 ## 十、停止顺序

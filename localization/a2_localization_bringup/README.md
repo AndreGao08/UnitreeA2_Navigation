@@ -83,8 +83,9 @@ Ground truth is available only for simulation evaluation on
 `/a2/ground_truth/odom`. Joint feedback is `/joint_states`, and FAST-LIO input
 health is `/a2_localization/input_ok`.
 
-The launch defaults to `rmw_fastrtps_cpp` because its local transport handles
-the large JT128 cloud reliably. Use `rmw_implementation:=...` to override it.
+The launch defaults to `rmw_cyclonedds_cpp`, matching the navigation and Web
+entry points. Use `rmw_implementation:=...` to override it consistently for
+every participating ROS 2 process.
 Evaluation CSV and JSON files are written to `/tmp/a2_localization_eval` by
 default. Set `gazebo_verbosity:=4` only when detailed Gazebo controller logs are
 needed.

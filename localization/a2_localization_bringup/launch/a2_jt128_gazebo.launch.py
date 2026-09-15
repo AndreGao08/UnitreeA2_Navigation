@@ -230,11 +230,10 @@ def generate_launch_description():
         DeclareLaunchArgument('eval_directory', default_value='/tmp/a2_localization_eval'),
         DeclareLaunchArgument(
             'rmw_implementation',
-            default_value='rmw_fastrtps_cpp',
+            default_value='rmw_cyclonedds_cpp',
             description=(
-                'ROS 2 middleware used by every launched process. Fast DDS is the '
-                'simulation default because its local shared-memory transport handles '
-                'the large JT128 PointCloud2 stream reliably.'
+                'ROS 2 middleware used by every launched process. Cyclone DDS is the '
+                'project-wide default for mapping, localization, and navigation.'
             ),
         ),
         SetEnvironmentVariable(

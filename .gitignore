@@ -20,9 +20,7 @@ frames_*.pdf
 *.db3
 *.mcap
 
-# External/reference checkouts are maintained independently inside each module.
-/localization/FAST_LIO_Hesai/
-/localization/FAST_LIO_LOCALIZATION/
+# Remaining external/reference checkouts are maintained independently.
 /navigation/ground_segmentation/
 /navigation/ground_segmentation_ros2/
 /navigation/nav2_ground_consistency_costmap_plugin/
