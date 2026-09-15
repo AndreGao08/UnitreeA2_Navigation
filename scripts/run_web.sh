@@ -5,15 +5,16 @@ script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd -- "${script_dir}/.." && pwd)"
 venv_python="${project_root}/.venv/a2_web/bin/python"
 web_map_dir="${project_root}/maps/web/default"
+web_root="${project_root}/navigation/web"
 
 if [ -x "${venv_python}" ] && "${venv_python}" -c 'import uvicorn' >/dev/null 2>&1; then
   web_python="${venv_python}"
 else
   web_python="/usr/bin/python3.10"
-  export PYTHONPATH="${project_root}/web/.python-deps${PYTHONPATH:+:${PYTHONPATH}}"
+  export PYTHONPATH="${web_root}/.python-deps${PYTHONPATH:+:${PYTHONPATH}}"
 fi
 
-if [ "${web_python}" = "/usr/bin/python3.10" ] && [ ! -d "${project_root}/web/.python-deps" ]; then
+if [ "${web_python}" = "/usr/bin/python3.10" ] && [ ! -d "${web_root}/.python-deps" ]; then
   echo "Web environment is missing; run: bash scripts/setup_web.sh" >&2
   exit 1
 fi
@@ -34,7 +35,7 @@ fi
 set +u
 source "${project_root}/scripts/web_ros_env.sh"
 set -u
-cd "${project_root}"
+cd "${web_root}"
 exec "${web_python}" -m uvicorn robot_server.app.main:app \
   --host "${A2_WEB_HOST:-0.0.0.0}" \
   --port "${A2_WEB_PORT:-8080}"

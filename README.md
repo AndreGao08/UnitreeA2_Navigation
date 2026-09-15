@@ -1,9 +1,8 @@
-# Unitree A2 + Hesai JT128 定位与导航（ROS 2 Humble）
+# UnitreeA2_Navigation
 
-本工程将 Unitree A2 URDF、Hesai JT128 激光雷达、IMU、ROS 2 版本
-FAST-LIO、点云地图重定位、GSeg3D 地形分割和 Nav2 导航整合到 Gazebo
-Fortress 仿真环境中。当前目标是得到机器人 `base_link` 在地图坐标系中的
-全局位姿，并使用网页或 RViz 完成建图、定位和导航。
+Unitree A2 + Hesai JT128 定位与导航工程（ROS 2 Humble）。工程同时支持
+Gazebo Fortress 仿真输入和 JT128 真机驱动，使用 FAST-LIO、点云地图重定位、
+GSeg3D 地形分割和 Nav2 完成建图、定位与导航。
 
 ## 一、总体坐标系和数据流
 
@@ -24,15 +23,15 @@ map -> odom -> base_link
 完整数据和控制链路如下：
 
 ```text
-Gazebo JT128/IMU
+前雷达 /lidar_points ── FAST-LIO ── /a2/odometry ── odom -> base_link
+       │                    │
+       │                 建图时保存 maps/a2_map.pcd
        │
-       ├─ /lidar_points + /lidar_imu
-       │           │
-       │        FAST-LIO ── /a2/odometry ── odom -> base_link
-       │           │
-       │        建图时保存 maps/a2_map.pcd
-       │
-       └─ GSeg3D（使用 IMU 重力方向判断坡度）
+       └─ 前向 180° ─┐
+后雷达 /lidar_points_2 ─ 后向安装雷达自身前向 180° ─┤
+                                                    └─ /a2/navigation/lidar_points
+                                                               │
+                                                    GSeg3D（结合 IMU 判断坡度）
                        │
           Nav2 静态全局代价地图 + Ground Consistency 局部代价地图
                        │
@@ -43,19 +42,25 @@ Gazebo JT128/IMU
        定位安全门 -> /a2/safe_cmd_vel -> A2 gait_controller -> Gazebo
 ```
 
-## 二、软件包
+## 二、模块划分
 
-| 软件包 | 功能 |
-|---|---|
-| `FAST_LIO_Hesai` | Hesai 适配版 FAST-LIO2，使用 ROS 2 分支 |
-| `a2_description` | Unitree A2 URDF、网格和 JT128/IMU 坐标系 |
-| `a2_gazebo` | A2 Gazebo Fortress 仿真世界和传感器 |
-| `hesai_jt128_sim` | 生成 JT128 PointCloud2 和 IMU 话题 |
-| `a2_localization_bringup` | 仿真、FAST-LIO、TF、步态和建图启动入口 |
-| `a2_map_localization` | PCD 地图发布、粗配准和精配准重定位 |
-| `a2_terrain_nav` | GSeg3D、Ground Consistency 和 Nav2 导航 |
-| `web/robot_server` | 网页控制台的 ROS 2 后端 |
-| `web/frontend` | 建图、定位、导航和点云显示前端 |
+工程源码按职责分成三个顶层模块：
+
+```text
+UnitreeA2_Navigation/
+├── localization/  # FAST-LIO、建图、TF 与地图重定位
+├── navigation/    # GSeg3D、Nav2、网页控制台与导航依赖
+└── driver/        # A2 描述/仿真、JT128 仿真适配与真机驱动
+```
+
+| 模块 | 主要内容 | 对外边界 |
+|---|---|---|
+| `localization/` | `FAST_LIO_Hesai`、`a2_localization_bringup`、`a2_map_localization` | 输入 `/lidar_points`、`/lidar_imu`；输出 `map -> odom -> base_link` |
+| `navigation/` | `a2_dual_lidar_nav`、`a2_terrain_nav`、GSeg3D、Ground Consistency、`web` | 输入前后雷达、定位和地图；输出 `/cmd_vel_nav` |
+| `driver/` | `a2_description`、`a2_gazebo`、`hesai_jt128_sim`、`a2_hesai_driver`、官方 `HesaiLidar_ROS_2.0` | 输出统一的 JT128 点云/IMU；接收安全速度命令 |
+
+各模块的详细说明见 `localization/README.md`、`navigation/README.md` 和
+`driver/README.md`。
 
 ## 三、安装和编译
 
@@ -69,12 +74,24 @@ source /opt/ros/humble/setup.bash
 source install/setup.bash
 ```
 
-也可以手动编译：
+`build_ros2.sh` 只构建三个模块中明确列出的 ROS 包，避免把参考仓库误当成
+运行包。编译完成后加载环境：
 
 ```bash
-colcon build --symlink-install
 source install/setup.bash
 ```
+
+### 3.1 JT128 真机驱动
+
+工程已内置 Hesai 官方 ROS 驱动 v2.0.12 及其 SDK。先修改
+`driver/a2_hesai_driver/config/jt128.yaml` 中的雷达 IP、主机 IP 和端口，再运行：
+
+```bash
+ros2 launch a2_hesai_driver jt128.launch.py
+```
+
+真机驱动输出 `/lidar_points` 和 `/lidar_imu`，与 FAST-LIO 输入直接一致。
+真机运行时不要同时启动 `hesai_jt128_sim`。
 
 ## 四、建图流程
 
@@ -239,6 +256,9 @@ Sport 控制器，也不是强化学习策略。`locomotion_mode:=dynamic` 只�
 
 ## 七、网页控制台
 
+网页端从安装、启动、建图、保存、定位到导航的完整操作步骤见
+[`WEB_RUNBOOK.md`](WEB_RUNBOOK.md)。
+
 ### 7.1 启动网页
 
 ```bash
@@ -252,7 +272,8 @@ bash scripts/run_web.sh
 http://127.0.0.1:8080
 ```
 
-默认账号为 `admin`，默认密码为 `123456`（首次使用时以页面提示为准）。
+默认账号为 `admin`，默认密码为 `123456`。局域网使用时应通过
+`HYY_ADMIN_PASSWORD` 环境变量修改密码，具体见完整网页运行手册。
 
 网页可以完成：
 
@@ -265,7 +286,7 @@ http://127.0.0.1:8080
 - 显示地图、TF、轨迹、机器人位姿和点云；
 - 保存和管理网页航点。
 
-网页运行时生成的地图和配置位于 `maps/web/`、`web/config/`，已加入
+网页运行时生成的地图和配置位于 `maps/web/`、`navigation/web/config/`，已加入
 `.gitignore`，不会污染源码提交。
 
 如果出现 `address already in use`，表示已有网页服务占用 8080 端口：
@@ -282,14 +303,16 @@ A2_WEB_PORT=8081 bash scripts/run_web.sh
 ```
 
 网页和仿真必须使用同一个 ROS 2 环境。系统没有 `python3-venv` 时，安装
-脚本会把 Python 3.10 兼容依赖放在 `web/.python-deps/`，不会使用 conda
+脚本会把 Python 3.10 兼容依赖放在 `navigation/web/.python-deps/`，不会使用 conda
 Python 3.13 加载 ROS 2 的 `rclpy`。
 
 ## 八、常用 ROS 2 接口
 
 | 话题/服务 | 类型 | 用途 |
 |---|---|---|
-| `/lidar_points` | `sensor_msgs/msg/PointCloud2` | JT128 点云输入 |
+| `/lidar_points` | `sensor_msgs/msg/PointCloud2` | 前 JT128 点云；保持为建图和定位输入 |
+| `/lidar_points_2` | `sensor_msgs/msg/PointCloud2` | 后 JT128 点云；仅用于导航 |
+| `/a2/navigation/lidar_points` | `sensor_msgs/msg/PointCloud2` | 前后雷达各自裁剪至 180° 后的导航点云 |
 | `/lidar_imu` | `sensor_msgs/msg/Imu` | FAST-LIO IMU 输入 |
 | `/Odometry` | `nav_msgs/msg/Odometry` | FAST-LIO 原始输出 |
 | `/a2/odometry` | `nav_msgs/msg/Odometry` | 局部 `odom -> base_link` |

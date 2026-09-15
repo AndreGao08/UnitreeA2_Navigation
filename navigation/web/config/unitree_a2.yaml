@@ -1,0 +1,24 @@
+profile:
+  id: unitree_a2
+  name: Unitree A2
+
+frames:
+  map: map
+  odom: odom
+  base_link: base_link
+
+paths:
+  map_directory: ${A2_NAVIGATION_WS}/maps/web
+  map_name: default
+  map_file_basename: a2_map
+  navigation_data_file: ${A2_NAVIGATION_WS}/navigation/web/config/navigation_data.json
+
+web_runtime:
+  default_pointcloud_topic: /cloud_registered
+  auto_initialize: true
+  gui: false
+  rviz: false
+
+tcp_listener:
+  server_host: 0.0.0.0
+  server_port: 8050

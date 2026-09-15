@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>a2_dual_lidar_nav</name>
+  <version>0.1.0</version>
+  <description>Navigation-only FOV filtering and aggregation for the A2 front and rear LiDARs.</description>
+  <maintainer email="maintainer@example.com">Unitree A2 Navigation</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>tf2</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>tf2_ros</depend>
+
+  <test_depend>ament_cmake_gtest</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

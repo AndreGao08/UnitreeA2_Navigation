@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>a2_gazebo</name>
+  <version>0.1.0</version>
+  <description>Gazebo Fortress worlds for Unitree A2 LiDAR-inertial localization.</description>
+  <maintainer email="maintainer@example.com">Unitree A2 Navigation</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <exec_depend>a2_description</exec_depend>
+  <exec_depend>ros_gz_bridge</exec_depend>
+  <exec_depend>ros_gz_sim</exec_depend>
+  <export><build_type>ament_cmake</build_type></export>
+</package>

@@ -6,10 +6,10 @@
 *.pyc
 *.pcd
 /maps/web/
-/web/config/auth_config.json
-/web/config_backups/
+/navigation/web/config/auth_config.json
+/navigation/web/config_backups/
 /.venv/
-/web/.python-deps/
+/navigation/web/.python-deps/
 frames_*.gv
 frames_*.pdf
 
@@ -20,8 +20,11 @@ frames_*.pdf
 *.db3
 *.mcap
 
-# Reference/vendor checkouts are maintained independently.
-/third_party/
-
-# FAST-LIO remains its own Git repository.
-/FAST_LIO_Hesai/
+# External/reference checkouts are maintained independently inside each module.
+/localization/FAST_LIO_Hesai/
+/localization/FAST_LIO_LOCALIZATION/
+/navigation/ground_segmentation/
+/navigation/ground_segmentation_ros2/
+/navigation/nav2_ground_consistency_costmap_plugin/
+/driver/unitree_rl_mjlab/
+/driver/unitree_ros/

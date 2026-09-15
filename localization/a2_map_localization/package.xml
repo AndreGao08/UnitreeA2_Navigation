@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>a2_map_localization</name>
+  <version>0.1.0</version>
+  <description>PCD map publication and scan-to-map relocalization for Unitree A2 FAST-LIO.</description>
+  <maintainer email="maintainer@example.com">Unitree A2 Navigation</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <exec_depend>ament_index_python</exec_depend>
+  <depend>eigen</depend>
+  <depend>geometry_msgs</depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <depend>nav_msgs</depend>
+  <depend>pcl_conversions</depend>
+  <depend>rclcpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>tf2_ros</depend>
+
+  <export><build_type>ament_cmake</build_type></export>
+</package>

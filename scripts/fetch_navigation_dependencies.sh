@@ -2,7 +2,7 @@
 set -euo pipefail
 
 workspace_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-dependency_dir="${workspace_dir}/third_party"
+dependency_dir="${workspace_dir}/navigation"
 mkdir -p "${dependency_dir}"
 
 clone_at_revision() {
@@ -57,6 +57,6 @@ clone_at_revision \
 
 apply_patch_once \
   nav2_ground_consistency_costmap_plugin \
-  "${workspace_dir}/patches/nav2_ground_consistency_humble_tests.patch"
+  "${workspace_dir}/navigation/patches/nav2_ground_consistency_humble_tests.patch"
 
 echo "Navigation source dependencies are ready under ${dependency_dir}."

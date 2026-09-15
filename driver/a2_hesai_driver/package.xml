@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>a2_hesai_driver</name>
+  <version>0.1.0</version>
+  <description>JT128 hardware-driver configuration for Unitree A2 Navigation.</description>
+  <maintainer email="maintainer@example.com">Unitree A2 Navigation</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>hesai_ros_driver</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

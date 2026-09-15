@@ -16,7 +16,10 @@ sudo apt-get install -y \
   ros-humble-nav2-bringup \
   python3-pytest \
   python3-numpy \
+  libboost-all-dev \
   libeigen3-dev \
   libpcl-dev \
   libgtest-dev \
-  libnanoflann-dev
+  libnanoflann-dev \
+  libssl-dev \
+  libyaml-cpp-dev
