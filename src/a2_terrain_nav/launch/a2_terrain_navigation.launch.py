@@ -33,6 +33,7 @@ def generate_launch_description():
     gui = LaunchConfiguration('gui')
     rviz = LaunchConfiguration('rviz')
     rmw_implementation = LaunchConfiguration('rmw_implementation')
+    horizontal_samples = LaunchConfiguration('horizontal_samples')
 
     localization = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(PathJoinSubstitution([
@@ -49,6 +50,7 @@ def generate_launch_description():
             'gui': gui,
             'rviz': 'false',
             'rmw_implementation': rmw_implementation,
+            'horizontal_samples': horizontal_samples,
             'relocalization_params_file': PathJoinSubstitution([
                 FindPackageShare('a2_terrain_nav'), 'config', 'relocalization_nav.yaml'
             ]),
@@ -106,8 +108,17 @@ def generate_launch_description():
             description='Minimum PCD returns needed to mark a static-map cell occupied',
         ),
         DeclareLaunchArgument('locomotion_mode', default_value='gait_demo'),
-        DeclareLaunchArgument('gui', default_value='true'),
+        DeclareLaunchArgument(
+            'gui',
+            default_value='false',
+            description='Show Gazebo GUI; disabled by default to reserve GPU capacity for JT128 and RViz',
+        ),
         DeclareLaunchArgument('rviz', default_value='true'),
+        DeclareLaunchArgument(
+            'horizontal_samples',
+            default_value='128',
+            description='JT128 horizontal samples per scan; increase only with sufficient GPU headroom',
+        ),
         DeclareLaunchArgument(
             'rmw_implementation',
             default_value='rmw_cyclonedds_cpp',
@@ -118,6 +129,9 @@ def generate_launch_description():
         # the combined launch's public rviz argument.
         GroupAction(actions=[localization], scoped=True),
         TimerAction(period=3.0, actions=[perception]),
-        TimerAction(period=5.0, actions=[navigation]),
-        TimerAction(period=6.0, actions=[rviz_node]),
+        # FAST-LIO needs its LiDAR/IMU initialization window before Nav2 can
+        # resolve odom -> base_link. Delaying consumers avoids a false TF error
+        # during an otherwise healthy startup.
+        TimerAction(period=9.0, actions=[navigation]),
+        TimerAction(period=10.0, actions=[rviz_node]),
     ])

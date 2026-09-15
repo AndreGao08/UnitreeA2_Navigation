@@ -32,6 +32,11 @@ Add `auto_initialize:=true` for the bundled simulation map. Otherwise, wait for
 FAST-LIO to initialize and set a rough pose with RViz **2D Pose Estimate**, then
 use **Nav2 Goal**.
 
+The navigation entry point runs Gazebo headlessly by default and starts RViz
+after about 10 seconds, leaving graphics capacity for the simulated JT128. Use
+`gui:=true` only when the Gazebo window is also needed. The stable simulation
+default is 128 horizontal samples; override it with `horizontal_samples:=N`.
+
 The combined navigation launch defaults all processes to CycloneDDS so RViz
 goals and Nav2 action feedback share one reliable middleware configuration.
 Override it with `rmw_implementation:=...` only when every participating ROS 2

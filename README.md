@@ -199,6 +199,11 @@ For the bundled simulation map, automatic initialization is repeatable:
 ros2 launch a2_terrain_nav a2_terrain_navigation.launch.py auto_initialize:=true
 ```
 
+Gazebo runs headlessly by default and RViz opens after about 10 seconds. This
+reserves the rendering capacity needed by the GPU LiDAR. Add `gui:=true` when a
+Gazebo window is required; the navigation default uses
+`horizontal_samples:=128`, which can be raised on a faster GPU.
+
 This combined launch defaults simulation, localization, RViz, and Nav2 to
 `rmw_cyclonedds_cpp`; its runtime is installed by
 `scripts/install_dependencies.sh`. If an external ROS 2 process sends goals or
