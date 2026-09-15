@@ -28,9 +28,17 @@ source install/setup.bash
 ros2 launch a2_terrain_nav a2_terrain_navigation.launch.py
 ```
 
-Wait for FAST-LIO to initialize, set a rough pose with RViz **2D Pose
-Estimate**, then use **Nav2 Goal**. The global planner uses `/map`; the local
-controller uses `/ground_segmentation/ground_points` and
+Add `auto_initialize:=true` for the bundled simulation map. Otherwise, wait for
+FAST-LIO to initialize and set a rough pose with RViz **2D Pose Estimate**, then
+use **Nav2 Goal**.
+
+The combined navigation launch defaults all processes to CycloneDDS so RViz
+goals and Nav2 action feedback share one reliable middleware configuration.
+Override it with `rmw_implementation:=...` only when every participating ROS 2
+process uses the same implementation.
+
+The global planner uses `/map`; the local controller uses
+`/ground_segmentation/ground_points` and
 `/ground_segmentation/obstacle_points` through Ground Consistency.
 
 The combined launch regenerates `maps/a2_nav2_map.yaml` and its PGM image when
@@ -40,6 +48,13 @@ The combined launch regenerates `maps/a2_nav2_map.yaml` and its PGM image when
 ros2 run a2_terrain_nav pcd_to_nav2_map \
   --input maps/a2_map.pcd --output maps/a2_nav2_map.yaml
 ```
+
+The projection requires four obstacle returns per cell by default, filtering
+sparse body/leg points from the driven path. Tune this with
+`minimum_points_per_cell:=N` at launch or `--minimum-points-per-cell N` in the
+converter. The navigation-specific relocalization profile updates scan-to-map
+corrections at 2 Hz. The requested global base pose is `/a2/localization`, with
+the equivalent TF chain `map -> odom -> base_link`.
 
 `lidar_to_ground` in `config/gseg3d_a2.yaml` is `-0.46 m` for the bundled
 `gait_demo` model. Replace it with the measured sensor height on the real A2.

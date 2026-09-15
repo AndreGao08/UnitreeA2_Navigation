@@ -25,6 +25,21 @@ clone_at_revision() {
   fi
 }
 
+apply_patch_once() {
+  local directory="$1"
+  local patch_file="$2"
+  local target="${dependency_dir}/${directory}"
+
+  if git -C "${target}" apply --unidiff-zero --reverse --check "${patch_file}" >/dev/null 2>&1; then
+    return
+  fi
+  if ! git -C "${target}" apply --unidiff-zero --check "${patch_file}"; then
+    echo "Cannot apply ${patch_file}; preserving the existing checkout for inspection." >&2
+    return 1
+  fi
+  git -C "${target}" apply --unidiff-zero "${patch_file}"
+}
+
 clone_at_revision \
   https://github.com/dfki-ric/ground_segmentation.git \
   ground_segmentation \
@@ -39,5 +54,9 @@ clone_at_revision \
   https://github.com/dfki-ric/nav2_ground_consistency_costmap_plugin.git \
   nav2_ground_consistency_costmap_plugin \
   41cec620efba6c370dccfc59a6ec1134775ff48a
+
+apply_patch_once \
+  nav2_ground_consistency_costmap_plugin \
+  "${workspace_dir}/patches/nav2_ground_consistency_humble_tests.patch"
 
 echo "Navigation source dependencies are ready under ${dependency_dir}."

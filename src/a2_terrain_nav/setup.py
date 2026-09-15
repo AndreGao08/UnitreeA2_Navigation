@@ -18,6 +18,7 @@ setup(
         (os.path.join('share', package_name, 'rviz'), glob('rviz/*.rviz')),
     ],
     install_requires=['setuptools', 'numpy'],
+    tests_require=['pytest'],
     zip_safe=True,
     maintainer='Unitree A2 Localization',
     maintainer_email='maintainer@example.com',

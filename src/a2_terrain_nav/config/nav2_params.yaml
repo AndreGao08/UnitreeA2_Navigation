@@ -19,6 +19,7 @@ controller_server:
     odom_topic: /a2/odometry
     progress_checker_plugin: progress_checker
     goal_checker_plugins: [general_goal_checker]
+    current_goal_checker: general_goal_checker
     controller_plugins: [FollowPath]
 
     progress_checker:
@@ -133,8 +134,9 @@ local_costmap:
       global_frame: odom
       robot_base_frame: base_link
       rolling_window: true
-      width: 8.0
-      height: 8.0
+      # Nav2 Humble declares rolling-window width/height as integer parameters.
+      width: 8
+      height: 8
       resolution: 0.05
       footprint: "[[0.42, 0.27], [0.42, -0.27], [-0.42, -0.27], [-0.42, 0.27]]"
       transform_tolerance: 0.30

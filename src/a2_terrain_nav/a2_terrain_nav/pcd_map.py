@@ -125,7 +125,7 @@ def project_pcd_to_nav2(
     min_obstacle_height: float = 0.12,
     max_obstacle_height: float = 1.50,
     margin: float = 1.0,
-    minimum_points_per_cell: int = 1,
+    minimum_points_per_cell: int = 4,
     ground_height: float | None = None,
 ) -> ProjectionResult:
     """Project a 3D map into the static 2D map used by Nav2."""
@@ -212,7 +212,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--min-obstacle-height', type=float, default=0.12)
     parser.add_argument('--max-obstacle-height', type=float, default=1.50)
     parser.add_argument('--margin', type=float, default=1.0)
-    parser.add_argument('--minimum-points-per-cell', type=int, default=1)
+    parser.add_argument(
+        '--minimum-points-per-cell',
+        type=int,
+        default=4,
+        help=(
+            'Minimum vertically relevant returns required to mark a cell occupied. '
+            'The default rejects sparse lidar/body ghost points left along the robot path.'
+        ),
+    )
     parser.add_argument('--ground-height', type=float)
     args = parser.parse_args(argv)
     result = project_pcd_to_nav2(

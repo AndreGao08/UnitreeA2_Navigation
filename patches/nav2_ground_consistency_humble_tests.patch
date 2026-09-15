@@ -1,0 +1,46 @@
+diff --git a/test/test_ground_consistency_layer.cpp b/test/test_ground_consistency_layer.cpp
+index 9e2e2eb..7fecb4f 100644
+--- a/test/test_ground_consistency_layer.cpp
++++ b/test/test_ground_consistency_layer.cpp
+@@ -4,0 +5 @@
++#include <limits>
+@@ -92,0 +94,10 @@ public:
++    std::vector<geometry_msgs::msg::Point> footprint(4);
++    footprint[0].x = 0.4;
++    footprint[0].y = 0.25;
++    footprint[1].x = 0.4;
++    footprint[1].y = -0.25;
++    footprint[2].x = -0.4;
++    footprint[2].y = -0.25;
++    footprint[3].x = -0.4;
++    footprint[3].y = 0.25;
++    layers_.setFootprint(footprint);
+@@ -117 +128,4 @@ public:
+-    double min_x, min_y, max_x, max_y;
++    double min_x = std::numeric_limits<double>::max();
++    double min_y = std::numeric_limits<double>::max();
++    double max_x = std::numeric_limits<double>::lowest();
++    double max_y = std::numeric_limits<double>::lowest();
+@@ -174 +188,4 @@ TEST_F(GroundConsistencyLayerTest, testUpdateBoundsBehavior)
+-  double min_x, min_y, max_x, max_y;
++  double min_x = std::numeric_limits<double>::max();
++  double min_y = std::numeric_limits<double>::max();
++  double max_x = std::numeric_limits<double>::lowest();
++  double max_y = std::numeric_limits<double>::lowest();
+@@ -267 +284,4 @@ TEST_F(GroundConsistencyLayerTest, testBoundsReflectFootprint)
+-  double min_x, min_y, max_x, max_y;
++  double min_x = std::numeric_limits<double>::max();
++  double min_y = std::numeric_limits<double>::max();
++  double max_x = std::numeric_limits<double>::lowest();
++  double max_y = std::numeric_limits<double>::lowest();
+@@ -276,0 +297,4 @@ TEST_F(GroundConsistencyLayerTest, testBoundsReflectFootprint)
++  min_x = std::numeric_limits<double>::max();
++  min_y = std::numeric_limits<double>::max();
++  max_x = std::numeric_limits<double>::lowest();
++  max_y = std::numeric_limits<double>::lowest();
+@@ -295 +319,4 @@ TEST_F(GroundConsistencyLayerTest, testRapidUpdates)
+-    double min_x, min_y, max_x, max_y;
++    double min_x = std::numeric_limits<double>::max();
++    double min_y = std::numeric_limits<double>::max();
++    double max_x = std::numeric_limits<double>::lowest();
++    double max_y = std::numeric_limits<double>::lowest();

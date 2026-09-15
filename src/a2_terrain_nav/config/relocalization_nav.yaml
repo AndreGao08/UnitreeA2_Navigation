@@ -1,0 +1,39 @@
+map_localizer:
+  ros__parameters:
+    use_sim_time: true
+    map_path: /tmp/a2_fastlio_map.pcd
+    map_frame: map
+    odom_frame: odom
+    base_frame: base_link
+    scan_topic: /cloud_registered
+    odometry_topic: /a2/odometry
+    initial_pose_topic: /initialpose
+    map_topic: /a2/map
+    global_odometry_topic: /a2/localization
+
+    # FAST-LIO is the high-rate local predictor.  The assisted Gazebo gait uses
+    # snapshot lidar scans, so scan-to-map correction supplies translation
+    # observability to the navigation feedback loop.
+    localization_frequency: 2.0
+    map_publish_frequency: 0.2
+    map_voxel_size: 0.25
+    scan_voxel_size: 0.15
+    coarse_voxel_size: 0.50
+    submap_radius: 30.0
+    coarse_max_correspondence: 2.5
+    fine_max_correspondence: 0.75
+    coarse_iterations: 40
+    fine_iterations: 30
+    minimum_scan_points: 100
+    minimum_submap_points: 300
+    minimum_overlap: 0.35
+    maximum_rmse: 0.35
+
+    # At 0.4 m/s and 2 Hz a valid correction can move by about 0.2 m.  The
+    # wider gate tolerates startup/controller transients, while full gain avoids
+    # the multi-metre steady-state lag caused by smoothing repeated corrections.
+    maximum_update_translation: 0.80
+    maximum_update_rotation_deg: 25.0
+    correction_alpha: 1.0
+    auto_initialize: false
+    initial_pose_xyzrpy: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]

@@ -52,8 +52,7 @@ def generate_launch_description():
         FindPackageShare('a2_localization_bringup'), 'config', 'a2_jt128_sim.yaml'])
     gait_config = PathJoinSubstitution([
         FindPackageShare('a2_localization_bringup'), 'config', 'a2_gait.yaml'])
-    relocalization_config = PathJoinSubstitution([
-        FindPackageShare('a2_map_localization'), 'config', 'relocalization.yaml'])
+    relocalization_config = LaunchConfiguration('relocalization_params_file')
     rviz_config = PathJoinSubstitution([
         FindPackageShare('a2_localization_bringup'), 'rviz', PythonExpression([
             "'a2_relocalization.rviz' if '", operation_mode,
@@ -200,6 +199,12 @@ def generate_launch_description():
             'map_path',
             default_value=_default_project_map_path(),
             description='PCD path; defaults to this project maps/a2_map.pcd'),
+        DeclareLaunchArgument(
+            'relocalization_params_file',
+            default_value=PathJoinSubstitution([
+                FindPackageShare('a2_map_localization'), 'config', 'relocalization.yaml'
+            ]),
+            description='Parameters for scan-to-map initialization and periodic correction'),
         DeclareLaunchArgument(
             'auto_initialize', default_value='false',
             description='Use the zero xyz/rpy initial guess instead of waiting for RViz /initialpose'),

@@ -43,6 +43,9 @@ def generate_launch_description():
             'gui': gui,
             'rviz': 'false',
             'rmw_implementation': rmw_implementation,
+            'relocalization_params_file': PathJoinSubstitution([
+                FindPackageShare('a2_terrain_nav'), 'config', 'relocalization_nav.yaml'
+            ]),
         }.items(),
     )
 
@@ -67,6 +70,7 @@ def generate_launch_description():
             'pcd_map': map_pcd,
             'map': map_yaml,
             'generate_map': 'true',
+            'minimum_points_per_cell': LaunchConfiguration('minimum_points_per_cell'),
             'autostart': 'true',
             'params_file': PathJoinSubstitution([
                 FindPackageShare('a2_terrain_nav'), 'config', 'nav2_params.yaml'
@@ -90,10 +94,19 @@ def generate_launch_description():
         DeclareLaunchArgument('map_pcd', default_value=_project_map_path('a2_map.pcd')),
         DeclareLaunchArgument('map_yaml', default_value=_project_map_path('a2_nav2_map.yaml')),
         DeclareLaunchArgument('auto_initialize', default_value='false'),
+        DeclareLaunchArgument(
+            'minimum_points_per_cell',
+            default_value='4',
+            description='Minimum PCD returns needed to mark a static-map cell occupied',
+        ),
         DeclareLaunchArgument('locomotion_mode', default_value='gait_demo'),
         DeclareLaunchArgument('gui', default_value='true'),
         DeclareLaunchArgument('rviz', default_value='true'),
-        DeclareLaunchArgument('rmw_implementation', default_value='rmw_fastrtps_cpp'),
+        DeclareLaunchArgument(
+            'rmw_implementation',
+            default_value='rmw_cyclonedds_cpp',
+            description='ROS middleware used consistently by simulation, localization, and Nav2',
+        ),
         SetEnvironmentVariable('RMW_IMPLEMENTATION', rmw_implementation),
         localization,
         TimerAction(period=3.0, actions=[perception]),

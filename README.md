@@ -193,8 +193,23 @@ source install/setup.bash
 ros2 launch a2_terrain_nav a2_terrain_navigation.launch.py
 ```
 
+For the bundled simulation map, automatic initialization is repeatable:
+
+```bash
+ros2 launch a2_terrain_nav a2_terrain_navigation.launch.py auto_initialize:=true
+```
+
+This combined launch defaults simulation, localization, RViz, and Nav2 to
+`rmw_cyclonedds_cpp`; its runtime is installed by
+`scripts/install_dependencies.sh`. If an external ROS 2 process sends goals or
+inspects topics, run it with the same `RMW_IMPLEMENTATION` (sourcing this launch
+does not alter the parent terminal).
+
 The launch automatically creates or refreshes `maps/a2_nav2_map.yaml` and
-`maps/a2_nav2_map.pgm` from the PCD. In RViz:
+`maps/a2_nav2_map.pgm` from the PCD. A cell must contain at least four obstacle
+returns before it is marked occupied; this rejects sparse robot-body ghosts
+left along the mapping trajectory. Override it only when necessary with
+`minimum_points_per_cell:=N`. In RViz:
 
 1. keep the robot stationary until FAST-LIO initializes;
 2. use **2D Pose Estimate** to initialize `map -> odom`;
@@ -206,6 +221,11 @@ global costmap uses the generated static map. The local costmap deliberately
 does not consume the raw JT128 cloud through ObstacleLayer/VoxelLayer: GSeg3D
 first separates ground and non-ground points, and Ground Consistency evaluates
 non-ground height relative to nearby ground before inflation.
+
+The navigation launch uses a dedicated 2 Hz scan-to-map correction profile so
+the global `map -> base_link` feedback does not lag the assisted gait. The
+robot's final global base pose is available on `/a2/localization` and through
+the TF transform `map -> base_link`.
 
 Useful diagnostics:
 

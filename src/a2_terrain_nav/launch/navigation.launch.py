@@ -25,6 +25,9 @@ def _launch_navigation(context, *args, **kwargs):
     generate_map = LaunchConfiguration('generate_map').perform(context).lower() in {
         '1', 'true', 'yes', 'on'
     }
+    minimum_points_per_cell = int(
+        LaunchConfiguration('minimum_points_per_cell').perform(context)
+    )
     if generate_map and (
         not yaml_path.exists()
         or (pcd_path.exists() and pcd_path.stat().st_mtime > yaml_path.stat().st_mtime)
@@ -33,7 +36,11 @@ def _launch_navigation(context, *args, **kwargs):
             raise RuntimeError(
                 f'Cannot generate Nav2 map: FAST-LIO PCD does not exist: {pcd_path}'
             )
-        result = project_pcd_to_nav2(pcd_path, yaml_path)
+        result = project_pcd_to_nav2(
+            pcd_path,
+            yaml_path,
+            minimum_points_per_cell=minimum_points_per_cell,
+        )
         print(
             f'[a2_terrain_nav] generated {result.width}x{result.height} map at '
             f'{result.yaml_path} (estimated ground_z={result.ground_height:.3f})'
@@ -84,6 +91,11 @@ def generate_launch_description():
         DeclareLaunchArgument('use_sim_time', default_value='true'),
         DeclareLaunchArgument('autostart', default_value='true'),
         DeclareLaunchArgument('generate_map', default_value='true'),
+        DeclareLaunchArgument(
+            'minimum_points_per_cell',
+            default_value='4',
+            description='Reject sparse PCD artifacts below this number of returns per cell',
+        ),
         DeclareLaunchArgument('pcd_map', default_value=_project_map_path('a2_map.pcd')),
         DeclareLaunchArgument('map', default_value=_project_map_path('a2_nav2_map.yaml')),
         DeclareLaunchArgument(
