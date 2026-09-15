@@ -202,6 +202,7 @@ private:
     declare_parameter<double>("maximum_rmse", 0.35);
     declare_parameter<double>("maximum_update_translation", 0.30);
     declare_parameter<double>("maximum_update_rotation_deg", 8.0);
+    declare_parameter<int>("maximum_consecutive_registration_failures", 4);
     declare_parameter<double>("correction_alpha", 0.15);
     declare_parameter<bool>("auto_initialize", false);
     declare_parameter<std::vector<double>>(
@@ -236,6 +237,9 @@ private:
     maximum_update_translation_ = get_parameter("maximum_update_translation").as_double();
     maximum_update_rotation_ =
       get_parameter("maximum_update_rotation_deg").as_double() * M_PI / 180.0;
+    maximum_consecutive_registration_failures_ = std::max(
+      static_cast<int>(
+        get_parameter("maximum_consecutive_registration_failures").as_int()), 1);
     correction_alpha_ = std::clamp(get_parameter("correction_alpha").as_double(), 0.0, 1.0);
     auto_initialize_ = get_parameter("auto_initialize").as_bool();
     initial_pose_xyzrpy_ = get_parameter("initial_pose_xyzrpy").as_double_array();
@@ -305,6 +309,7 @@ private:
     localization_requested_ = true;
     localized_ = false;
     publishStatus("INITIALIZING: initial pose accepted, waiting for a fresh scan");
+    consecutive_registration_failures_ = 0;
   }
 
   void localizationTimer()
@@ -343,9 +348,7 @@ private:
       if (initial_registration) {
         publishStatus("INITIALIZATION_REJECTED: adjust /initialpose and retry");
       } else {
-        RCLCPP_WARN(
-          get_logger(),
-          "Periodic correction rejected by quality gate; retaining the current map -> odom");
+        recordRegistrationFailure("scan-to-map quality gate rejected the correction");
       }
       return;
     }
@@ -356,10 +359,9 @@ private:
       const double rotation_jump = rotationAngle(delta.block<3, 3>(0, 0));
       if (translation_jump > maximum_update_translation_ || rotation_jump > maximum_update_rotation_) {
         publishMetrics(rmse, overlap);
-        RCLCPP_WARN(
-          get_logger(),
-          "Periodic correction rejected: jump %.3f m, %.2f deg exceeds limits; retaining map -> odom",
-          translation_jump, rotation_jump * 180.0 / M_PI);
+        recordRegistrationFailure(
+          "scan-to-map correction jump " + std::to_string(translation_jump) + " m, " +
+          std::to_string(rotation_jump * 180.0 / M_PI) + " deg exceeds limits");
         return;
       }
       map_to_odom_ = smoothedTransform(map_to_odom_, candidate, correction_alpha_);
@@ -371,6 +373,7 @@ private:
     }
 
     publishMetrics(rmse, overlap);
+    consecutive_registration_failures_ = 0;
     publishStatus("LOCALIZED");
     publishAlignedScan();
     publishTransformAndCorrection(latest_scan_stamp_);
@@ -565,6 +568,24 @@ private:
     RCLCPP_INFO(get_logger(), "Relocalization status: %s", status.c_str());
   }
 
+  void recordRegistrationFailure(const std::string & reason)
+  {
+    ++consecutive_registration_failures_;
+    RCLCPP_WARN(
+      get_logger(), "%s (%d/%d)", reason.c_str(), consecutive_registration_failures_,
+      maximum_consecutive_registration_failures_);
+    if (consecutive_registration_failures_ < maximum_consecutive_registration_failures_) {
+      return;
+    }
+    localized_ = false;
+    localization_requested_ = false;
+    publishStatus("LOST: repeated scan-to-map registration failures");
+    RCLCPP_ERROR(
+      get_logger(), "Localization declared LOST after %d consecutive failures; "
+      "map -> odom output is disabled until a new /initialpose or /a2/relocalize request",
+      consecutive_registration_failures_);
+  }
+
   void relocalizeCallback(
     const std_srvs::srv::Trigger::Request::SharedPtr,
     std_srvs::srv::Trigger::Response::SharedPtr response)
@@ -580,6 +601,7 @@ private:
     }
     localized_ = false;
     localization_requested_ = true;
+    consecutive_registration_failures_ = 0;
     last_processed_scan_sequence_ = 0;
     publishStatus("RELOCALIZATION_REQUESTED");
     response->success = true;
@@ -594,6 +616,7 @@ private:
     localization_requested_ = false;
     have_initial_pose_ = false;
     map_to_odom_ = Eigen::Matrix4d::Identity();
+    consecutive_registration_failures_ = 0;
     publishStatus("WAITING_FOR_INITIAL_POSE: localization reset");
     response->success = true;
     response->message = "Global localization reset; publish /initialpose.";
@@ -624,6 +647,7 @@ private:
   double maximum_rmse_{};
   double maximum_update_translation_{};
   double maximum_update_rotation_{};
+  int maximum_consecutive_registration_failures_{};
   double correction_alpha_{};
   bool auto_initialize_{};
   std::vector<double> initial_pose_xyzrpy_;
@@ -642,6 +666,7 @@ private:
   bool warned_scan_frame_{false};
   std::size_t scan_sequence_{0};
   std::size_t last_processed_scan_sequence_{0};
+  int consecutive_registration_failures_{0};
   std::string last_status_;
 
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr map_publisher_;

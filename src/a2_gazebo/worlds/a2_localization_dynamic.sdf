@@ -102,7 +102,8 @@
     </model>
 
     <model name="ramp">
-      <static>true</static><pose>-5 3 0.45 0 0.18 -0.4</pose>
+      <!-- Low edge of the 10.3 degree top face is flush with floor z=0.05. -->
+      <static>true</static><pose>-5 3 0.2448 0 0.18 -0.4</pose>
       <link name="link">
         <collision name="collision"><geometry><box><size>3 2 0.15</size></box></geometry></collision>
         <visual name="visual"><geometry><box><size>3 2 0.15</size></box></geometry>

@@ -34,6 +34,9 @@ map_localizer:
     # the multi-metre steady-state lag caused by smoothing repeated corrections.
     maximum_update_translation: 0.80
     maximum_update_rotation_deg: 25.0
+    # Four rejected 2 Hz corrections (2 seconds) declare localization LOST.
+    # The safety gate then cancels Nav2 and publishes zero velocity.
+    maximum_consecutive_registration_failures: 4
     correction_alpha: 1.0
     auto_initialize: false
     initial_pose_xyzrpy: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]

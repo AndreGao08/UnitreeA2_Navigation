@@ -23,9 +23,13 @@ ground_segmentation:
     cellSizeY: 0.50
     cellSizeZ: 5.0
     cellSizeZPhase2: 0.50
-    slopeThresholdDegrees: 20.0
+    # The bundled ramp is 0.18 rad = 10.31 degrees.  Accept it with useful
+    # sensor/noise margin, while retaining steeper faces as obstacles.
+    slopeThresholdDegrees: 15.0
     groundInlierThreshold: 0.10
     centroidSearchRadius: 2.5
     use_imu_orientation: true
-    maxGroundHeightDeviation: 0.15
+    # A 15 degree surface changes by 0.134 m across one 0.50 m cell.
+    # This admits the ramp but still breaks expansion across a 0.20 m step.
+    maxGroundHeightDeviation: 0.14
     show_benchmark: false

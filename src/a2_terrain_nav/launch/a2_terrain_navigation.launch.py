@@ -51,6 +51,7 @@ def generate_launch_description():
             'rviz': 'false',
             'rmw_implementation': rmw_implementation,
             'horizontal_samples': horizontal_samples,
+            'robot_cmd_vel_topic': '/a2/safe_cmd_vel',
             'relocalization_params_file': PathJoinSubstitution([
                 FindPackageShare('a2_terrain_nav'), 'config', 'relocalization_nav.yaml'
             ]),
@@ -96,6 +97,16 @@ def generate_launch_description():
         parameters=[{'use_sim_time': use_sim_time}],
         condition=IfCondition(rviz),
     )
+    safety_monitor = Node(
+        package='a2_terrain_nav',
+        executable='localization_safety_monitor',
+        output='screen',
+        parameters=[{
+            'use_sim_time': use_sim_time,
+            'input_cmd_vel_topic': '/cmd_vel',
+            'output_cmd_vel_topic': '/a2/safe_cmd_vel',
+        }],
+    )
 
     return LaunchDescription([
         DeclareLaunchArgument('use_sim_time', default_value='true'),
@@ -132,6 +143,7 @@ def generate_launch_description():
         # FAST-LIO needs its LiDAR/IMU initialization window before Nav2 can
         # resolve odom -> base_link. Delaying consumers avoids a false TF error
         # during an otherwise healthy startup.
+        TimerAction(period=8.5, actions=[safety_monitor]),
         TimerAction(period=9.0, actions=[navigation]),
         TimerAction(period=10.0, actions=[rviz_node]),
     ])

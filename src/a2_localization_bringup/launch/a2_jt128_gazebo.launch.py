@@ -39,6 +39,7 @@ def generate_launch_description():
     eval_directory = LaunchConfiguration('eval_directory')
     rmw_implementation = LaunchConfiguration('rmw_implementation')
     gazebo_verbosity = LaunchConfiguration('gazebo_verbosity')
+    robot_cmd_vel_topic = LaunchConfiguration('robot_cmd_vel_topic')
 
     world = PathJoinSubstitution([
         FindPackageShare('a2_gazebo'), 'worlds', PythonExpression([
@@ -109,7 +110,12 @@ def generate_launch_description():
             '/a2/base_velocity_assist@geometry_msgs/msg/Twist]ignition.msgs.Twist',
             '/model/unitree_a2/joint_trajectory@trajectory_msgs/msg/JointTrajectory]ignition.msgs.JointTrajectory',
         ],
-        remappings=[('/a2/joint_states', '/joint_states')])
+        remappings=[
+            ('/a2/joint_states', '/joint_states'),
+            # In navigation mode this resolves to /a2/safe_cmd_vel, so neither
+            # Nav2 nor teleop can bypass the localization safety gate.
+            ('/cmd_vel', robot_cmd_vel_topic),
+        ])
 
     cloud_adapter = Node(
         package='hesai_jt128_sim', executable='cloud_adapter', output='screen',
@@ -166,7 +172,7 @@ def generate_launch_description():
         ])),
         parameters=[gait_config, {
             'use_sim_time': True,
-            'cmd_vel_topic': '/cmd_vel',
+            'cmd_vel_topic': robot_cmd_vel_topic,
             'base_motion_assist': ParameterValue(PythonExpression([
                 "'", locomotion_mode, "' == 'gait_demo'"
             ]), value_type=bool),
@@ -218,6 +224,9 @@ def generate_launch_description():
         DeclareLaunchArgument('lidar_rpy', default_value='0.0 0.0 0.0'),
         DeclareLaunchArgument('horizontal_samples', default_value='256'),
         DeclareLaunchArgument('gazebo_verbosity', default_value='3'),
+        DeclareLaunchArgument(
+            'robot_cmd_vel_topic', default_value='/cmd_vel',
+            description='Velocity topic consumed by Gazebo and the gait controller'),
         DeclareLaunchArgument('eval_directory', default_value='/tmp/a2_localization_eval'),
         DeclareLaunchArgument(
             'rmw_implementation',

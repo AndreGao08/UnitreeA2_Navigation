@@ -26,6 +26,7 @@ setup(
     license='Apache-2.0',
     entry_points={
         'console_scripts': [
+            'localization_safety_monitor = a2_terrain_nav.localization_safety_monitor:main',
             'pcd_to_nav2_map = a2_terrain_nav.pcd_map:main',
         ],
     },
