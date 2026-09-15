@@ -2,7 +2,13 @@ from pathlib import Path
 
 from ament_index_python.packages import get_package_prefix
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, SetEnvironmentVariable, TimerAction
+from launch.actions import (
+    DeclareLaunchArgument,
+    GroupAction,
+    IncludeLaunchDescription,
+    SetEnvironmentVariable,
+    TimerAction,
+)
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
@@ -108,7 +114,9 @@ def generate_launch_description():
             description='ROS middleware used consistently by simulation, localization, and Nav2',
         ),
         SetEnvironmentVariable('RMW_IMPLEMENTATION', rmw_implementation),
-        localization,
+        # Keep child launch arguments (notably its rviz=false) from overwriting
+        # the combined launch's public rviz argument.
+        GroupAction(actions=[localization], scoped=True),
         TimerAction(period=3.0, actions=[perception]),
         TimerAction(period=5.0, actions=[navigation]),
         TimerAction(period=6.0, actions=[rviz_node]),
