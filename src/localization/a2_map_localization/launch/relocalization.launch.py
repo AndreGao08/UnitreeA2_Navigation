@@ -12,7 +12,7 @@ from launch_ros.substitutions import FindPackageShare
 def _default_project_map_path():
     prefix = Path(get_package_prefix('a2_map_localization')).resolve()
     for candidate in (prefix, *prefix.parents):
-        if (candidate / 'localization' / 'a2_map_localization').is_dir():
+        if (candidate / 'src' / 'localization' / 'a2_map_localization').is_dir():
             return str(candidate / 'maps' / 'a2_map.pcd')
     return str(Path.cwd() / 'maps' / 'a2_map.pcd')
 

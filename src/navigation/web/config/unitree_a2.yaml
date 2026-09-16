@@ -11,7 +11,7 @@ paths:
   map_directory: ${A2_NAVIGATION_WS}/maps/web
   map_name: default
   map_file_basename: a2_map
-  navigation_data_file: ${A2_NAVIGATION_WS}/navigation/web/config/navigation_data.json
+  navigation_data_file: ${A2_NAVIGATION_WS}/src/navigation/web/config/navigation_data.json
 
 web_runtime:
   default_pointcloud_topic: /cloud_registered

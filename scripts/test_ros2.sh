@@ -14,9 +14,9 @@ colcon test --packages-select \
   a2_localization_bringup \
   a2_terrain_nav \
   --base-paths \
-  navigation/a2_dual_lidar_nav \
-  driver/hesai_jt128_sim \
-  localization/a2_localization_bringup \
-  navigation/a2_terrain_nav \
+  src/navigation/a2_dual_lidar_nav \
+  src/driver/hesai_jt128_sim \
+  src/localization/a2_localization_bringup \
+  src/navigation/a2_terrain_nav \
   --event-handlers console_direct+
 colcon test-result --verbose

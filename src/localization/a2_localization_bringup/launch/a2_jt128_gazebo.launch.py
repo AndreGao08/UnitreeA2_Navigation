@@ -20,7 +20,7 @@ def _default_project_map_path():
     """Find this colcon workspace and keep the default map inside it."""
     prefix = Path(get_package_prefix('a2_localization_bringup')).resolve()
     for candidate in (prefix, *prefix.parents):
-        if (candidate / 'localization' / 'a2_localization_bringup').is_dir():
+        if (candidate / 'src' / 'localization' / 'a2_localization_bringup').is_dir():
             return str(candidate / 'maps' / 'a2_map.pcd')
     return str(Path.cwd() / 'maps' / 'a2_map.pcd')
 

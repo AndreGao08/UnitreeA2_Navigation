@@ -5,7 +5,7 @@ script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd -- "${script_dir}/.." && pwd)"
 venv_python="${project_root}/.venv/a2_web/bin/python"
 web_map_dir="${project_root}/maps/web/default"
-web_root="${project_root}/navigation/web"
+web_root="${project_root}/src/navigation/web"
 
 if [ -x "${venv_python}" ] && "${venv_python}" -c 'import uvicorn' >/dev/null 2>&1; then
   web_python="${venv_python}"

@@ -10,12 +10,12 @@ def _project_root():
         configured = os.getenv("A2_LOCALIZATION_WS", "").strip()
     if configured:
         return Path(configured).expanduser().resolve()
-    # navigation/web/robot_server/app/paths.py -> UnitreeA2_Navigation
-    return Path(__file__).resolve().parents[4]
+    # src/navigation/web/robot_server/app/paths.py -> UnitreeA2_Navigation
+    return Path(__file__).resolve().parents[5]
 
 
 WORKSPACE_ROOT = _project_root()
-WEB_ROOT = WORKSPACE_ROOT / "navigation" / "web"
+WEB_ROOT = WORKSPACE_ROOT / "src" / "navigation" / "web"
 FRONTEND_DIR = WEB_ROOT / "frontend"
 MAP_DIR = WORKSPACE_ROOT / "maps" / "web"
 NAVIGATION_DATA_FILE = WEB_ROOT / "config" / "navigation_data.json"

@@ -15,5 +15,5 @@ if [ ! -f "${A2_NAVIGATION_WS}/install/setup.bash" ]; then
 fi
 source "${A2_NAVIGATION_WS}/install/setup.bash"
 
-export PYTHONPATH="${A2_NAVIGATION_WS}/navigation/web${PYTHONPATH:+:${PYTHONPATH}}"
+export PYTHONPATH="${A2_NAVIGATION_WS}/src/navigation/web${PYTHONPATH:+:${PYTHONPATH}}"
 unset _a2_script_dir

@@ -14,7 +14,7 @@ from a2_terrain_nav.pcd_map import project_pcd_to_nav2
 def _project_map_path(filename: str) -> str:
     prefix = Path(get_package_prefix('a2_terrain_nav')).resolve()
     for candidate in (prefix, *prefix.parents):
-        if (candidate / 'navigation' / 'a2_terrain_nav').is_dir():
+        if (candidate / 'src' / 'navigation' / 'a2_terrain_nav').is_dir():
             return str(candidate / 'maps' / filename)
     return str(Path.cwd() / 'maps' / filename)
 

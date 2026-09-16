@@ -3,7 +3,7 @@
 本目录是从 `robot_navigation-main` 移植的网页控制台，已经将机器人配置、ROS 2 话题和启动命令替换为当前 Unitree A2 工程：Hesai JT128、FAST-LIO、GSeg3D 和 Nav2。
 
 从依赖安装、工程编译、网页建图、地图保存到定位导航的完整中文运行手册见
-[`../../WEB_RUNBOOK.md`](../../WEB_RUNBOOK.md)。
+[`../../../WEB_RUNBOOK.md`](../../../WEB_RUNBOOK.md)。
 
 ## 启动
 
@@ -18,7 +18,9 @@ bash scripts/run_web.sh
 `123456`。局域网使用时应通过 `HYY_ADMIN_PASSWORD` 环境变量修改密码。
 网页服务会自动 source `/opt/ros/humble` 和当前工程的 `install/setup.bash`。
 
-如果系统没有安装 `python3-venv`，安装脚本会把 Python 3.10 兼容 wheel 放到被 `.gitignore` 忽略的 `navigation/web/.python-deps/`，不会使用 conda 的 Python 3.13 去加载 ROS 2 的 `rclpy`。
+如果系统没有安装 `python3-venv`，安装脚本会把 Python 3.10 兼容 wheel 放到被
+`.gitignore` 忽略的 `src/navigation/web/.python-deps/`，不会使用 conda 的
+Python 3.13 去加载 ROS 2 的 `rclpy`。
 
 ## 网页功能与 ROS 2 对接
 
@@ -33,7 +35,9 @@ bash scripts/run_web.sh
 
 ## 地图流程
 
-网页“建图”启动后使用手动 `/cmd_vel` 驱动机器人；点击“结束并保存”会调用 `/map_save`，随后将 PCD 转换为 Nav2 的 YAML/PGM。网页地图选择和初始位姿/航点数据保存在 `navigation/web/config/navigation_data.json`。
+网页“建图”启动后使用手动 `/cmd_vel` 驱动机器人；点击“结束并保存”会调用
+`/map_save`，随后将 PCD 转换为 Nav2 的 YAML/PGM。网页地图选择和初始位姿/
+航点数据保存在 `src/navigation/web/config/navigation_data.json`。
 
 可选环境变量：
 

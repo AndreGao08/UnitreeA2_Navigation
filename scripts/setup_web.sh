@@ -4,7 +4,7 @@ set -euo pipefail
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd -- "${script_dir}/.." && pwd)"
 venv_dir="${project_root}/.venv/a2_web"
-web_root="${project_root}/navigation/web"
+web_root="${project_root}/src/navigation/web"
 deps_dir="${web_root}/.python-deps"
 
 if /usr/bin/python3 -c 'import ensurepip' >/dev/null 2>&1; then

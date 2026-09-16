@@ -52,7 +52,8 @@ bash scripts/setup_web.sh
 
 - `install_dependencies.sh` 会使用 `sudo apt` 安装 ROS、Nav2、PCL 等依赖；
 - `fetch_navigation_dependencies.sh` 会下载固定版本的 GSeg3D 和 Nav2 地形插件；
-- `build_ros2.sh` 编译 `localization/`、`navigation/`、`driver/` 三个模块；
+- `build_ros2.sh` 编译 `src/localization/`、`src/navigation/`、
+  `src/driver/` 三个模块；
 - `setup_web.sh` 创建网页 Python 环境并安装依赖。
 - 修改后的 `FAST_LIO_Hesai`（含 `ikd-Tree`）及参考用的
   `FAST_LIO_LOCALIZATION` 已随主仓库提供，不需要额外下载。
@@ -223,7 +224,7 @@ map -> odom -> base_link
 测试。航点按地图分区保存在：
 
 ```text
-navigation/web/config/navigation_data.json
+src/navigation/web/config/navigation_data.json
 ```
 
 只有地图已经加载且 `map -> base_link` 有效时才能记录当前位姿。
@@ -270,7 +271,7 @@ navigation/web/config/navigation_data.json
 7. 将网页后端的启动命令从当前 Gazebo launch 切换为真机 bringup 后再使用
    “启动导航系统”。
 
-工程提供的 `driver/a2_hesai_driver/config/jt128.yaml` 是**单台前雷达模板**，
+工程提供的 `src/driver/a2_hesai_driver/config/jt128.yaml` 是**单台前雷达模板**，
 不能原样同时启动两台雷达。双雷达真机配置需要分别设置话题、frame、IP 和端口，
 并确保节点名不冲突。
 
@@ -287,7 +288,7 @@ ros2 run tf2_ros tf2_echo base_link <前雷达frame>
 ros2 run tf2_ros tf2_echo base_link <后雷达frame>
 ```
 
-还应把 `navigation/web/config/unitree_a2.yaml` 中的
+还应把 `src/navigation/web/config/unitree_a2.yaml` 中的
 `web_runtime.auto_initialize` 设为 `false`，由操作员在网页上明确设置初始位姿。
 真实机器人周围必须留有急停人员和安全空间；当前 `gait_demo` 是仿真控制器，
 不能直接替代 Unitree 真机运动控制接口。
@@ -399,9 +400,9 @@ ss -ltnp 'sport = :8080'
 ## 十二、相关文件
 
 - 工程总说明：`README.md`
-- 定位模块：`localization/README.md`
-- 导航模块：`navigation/README.md`
-- 驱动模块：`driver/README.md`
-- 网页配置：`navigation/web/config/unitree_a2.yaml`
-- 网页启动命令：`navigation/web/robot_server/app/services/process_manager.py`
+- 定位模块：`src/localization/README.md`
+- 导航模块：`src/navigation/README.md`
+- 驱动模块：`src/driver/README.md`
+- 网页配置：`src/navigation/web/config/unitree_a2.yaml`
+- 网页启动命令：`src/navigation/web/robot_server/app/services/process_manager.py`
 - 网页地图目录：`maps/web/`

@@ -22,10 +22,10 @@ class RobotProfileManager:
         "unitree_a2": {
             "name": "Unitree A2",
             "description": "Hesai JT128 + FAST-LIO + GSeg3D + Nav2",
-            "navigation_config": WORKSPACE_ROOT / "navigation/web/config/unitree_a2.yaml",
-            "nav2_directory": WORKSPACE_ROOT / "navigation/web/config/nav2",
+            "navigation_config": WORKSPACE_ROOT / "src/navigation/web/config/unitree_a2.yaml",
+            "nav2_directory": WORKSPACE_ROOT / "src/navigation/web/config/nav2",
             "default_nav2_preset": "terrain",
-            "behavior_tree_directory": WORKSPACE_ROOT / "navigation/web/config/behavior_trees",
+            "behavior_tree_directory": WORKSPACE_ROOT / "src/navigation/web/config/behavior_trees",
             "default_behavior_tree": "navigate_to_pose",
         },
     }

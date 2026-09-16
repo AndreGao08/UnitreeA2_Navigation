@@ -44,23 +44,29 @@ map -> odom -> base_link
 
 ## 二、模块划分
 
-工程源码按职责分成三个顶层模块：
+工程采用标准 ROS 2 工作空间布局，源码位于 `src/`，再按职责分成三个模块：
 
 ```text
 UnitreeA2_Navigation/
-├── localization/  # FAST-LIO、建图、TF 与地图重定位
-├── navigation/    # GSeg3D、Nav2、网页控制台与导航依赖
-└── driver/        # A2 描述/仿真、JT128 仿真适配与真机驱动
+├── src/
+│   ├── localization/  # FAST-LIO、建图、TF 与地图重定位
+│   ├── navigation/    # GSeg3D、Nav2、网页控制台与导航依赖
+│   └── driver/        # A2 描述/仿真、JT128 仿真适配与真机驱动
+├── maps/              # PCD 与 Nav2 地图
+├── scripts/           # 安装、构建、测试和网页入口
+├── build/             # colcon 生成（不提交）
+├── install/           # colcon 生成（不提交）
+└── log/               # colcon 生成（不提交）
 ```
 
 | 模块 | 主要内容 | 对外边界 |
 |---|---|---|
-| `localization/` | `FAST_LIO_Hesai`、`a2_localization_bringup`、`a2_map_localization` | 输入 `/lidar_points`、`/lidar_imu`；输出 `map -> odom -> base_link` |
-| `navigation/` | `a2_dual_lidar_nav`、`a2_terrain_nav`、GSeg3D、Ground Consistency、`web` | 输入前后雷达、定位和地图；输出 `/cmd_vel_nav` |
-| `driver/` | `a2_description`、`a2_gazebo`、`hesai_jt128_sim`、`a2_hesai_driver`、官方 `HesaiLidar_ROS_2.0` | 输出统一的 JT128 点云/IMU；接收安全速度命令 |
+| `src/localization/` | `FAST_LIO_Hesai`、`a2_localization_bringup`、`a2_map_localization` | 输入 `/lidar_points`、`/lidar_imu`；输出 `map -> odom -> base_link` |
+| `src/navigation/` | `a2_dual_lidar_nav`、`a2_terrain_nav`、GSeg3D、Ground Consistency、`web` | 输入前后雷达、定位和地图；输出 `/cmd_vel_nav` |
+| `src/driver/` | `a2_description`、`a2_gazebo`、`hesai_jt128_sim`、`a2_hesai_driver`、官方 `HesaiLidar_ROS_2.0` | 输出统一的 JT128 点云/IMU；接收安全速度命令 |
 
-各模块的详细说明见 `localization/README.md`、`navigation/README.md` 和
-`driver/README.md`。
+各模块的详细说明见 `src/localization/README.md`、`src/navigation/README.md`
+和 `src/driver/README.md`。
 
 ## 三、安装和编译
 
@@ -86,7 +92,7 @@ source install/setup.bash
 ### 3.1 JT128 真机驱动
 
 工程已内置 Hesai 官方 ROS 驱动 v2.0.12 及其 SDK。先修改
-`driver/a2_hesai_driver/config/jt128.yaml` 中的雷达 IP、主机 IP 和端口，再运行：
+`src/driver/a2_hesai_driver/config/jt128.yaml` 中的雷达 IP、主机 IP 和端口，再运行：
 
 ```bash
 ros2 launch a2_hesai_driver jt128.launch.py
@@ -288,7 +294,7 @@ http://127.0.0.1:8080
 - 显示地图、TF、轨迹、机器人位姿和点云；
 - 保存和管理网页航点。
 
-网页运行时生成的地图和配置位于 `maps/web/`、`navigation/web/config/`，已加入
+网页运行时生成的地图和配置位于 `maps/web/`、`src/navigation/web/config/`，已加入
 `.gitignore`，不会污染源码提交。
 
 如果出现 `address already in use`，表示已有网页服务占用 8080 端口：
@@ -305,7 +311,7 @@ A2_WEB_PORT=8081 bash scripts/run_web.sh
 ```
 
 网页和仿真必须使用同一个 ROS 2 环境。系统没有 `python3-venv` 时，安装
-脚本会把 Python 3.10 兼容依赖放在 `navigation/web/.python-deps/`，不会使用 conda
+脚本会把 Python 3.10 兼容依赖放在 `src/navigation/web/.python-deps/`，不会使用 conda
 Python 3.13 加载 ROS 2 的 `rclpy`。
 
 ## 八、常用 ROS 2 接口

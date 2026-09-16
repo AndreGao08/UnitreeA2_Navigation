@@ -6,10 +6,10 @@
 *.pyc
 *.pcd
 /maps/web/
-/navigation/web/config/auth_config.json
-/navigation/web/config_backups/
+/src/navigation/web/config/auth_config.json
+/src/navigation/web/config_backups/
 /.venv/
-/navigation/web/.python-deps/
+/src/navigation/web/.python-deps/
 frames_*.gv
 frames_*.pdf
 
@@ -21,8 +21,8 @@ frames_*.pdf
 *.mcap
 
 # Remaining external/reference checkouts are maintained independently.
-/navigation/ground_segmentation/
-/navigation/ground_segmentation_ros2/
-/navigation/nav2_ground_consistency_costmap_plugin/
-/driver/unitree_rl_mjlab/
-/driver/unitree_ros/
+/src/navigation/ground_segmentation/
+/src/navigation/ground_segmentation_ros2/
+/src/navigation/nav2_ground_consistency_costmap_plugin/
+/src/driver/unitree_rl_mjlab/
+/src/driver/unitree_ros/
